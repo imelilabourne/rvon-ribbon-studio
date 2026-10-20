@@ -458,19 +458,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     $('viewDesign').hidden = S.step !== 'design';
     $('viewSummary').hidden = S.step !== 'summary';
 
-    // preview
+    // preview: drawn on a canvas with the same code as the downloadable layout, so both always match
     var r = $('ribbon');
-    r.style.height = d.h + 'px';
-    r.style.background = S.base;
-    r.style.clipPath = 'polygon(0 0, 100% 0, calc(100% - ' + d.notch + 'px) 50%, 100% 100%, 0 100%, ' + d.notch + 'px 50%)';
-    r.style.color = d.ink.hex;
-    r.style.fontFamily = fam(d.font);
-    r.style.fontWeight = d.font[1];
-    r.style.fontSize = d.mainPx + 'px';
+    r.style.clipPath = 'none'; r.style.background = 'transparent'; r.style.boxShadow = 'none';
     r.setAttribute('aria-label', 'Preview: "' + d.shown + '"' + (d.sub ? ' with "' + d.sub + '" underneath' : '') + ' in ' + d.font[0] + ', ' + d.ink.name + ' ink on ' + d.baseName);
-    r.textContent = '';
     var stage = $('stage'), availW = stage.clientWidth * 0.98;
-    // keep the ribbon at least 44px tall so text stays readable; if 3 repeats then don't fit, the ribbon scrolls sideways
+    // keep a repeating ribbon at least 44px tall on phones so text stays readable; if 3 repeats then don't fit, it scrolls sideways
     var minH = availW > 500 ? 28 : 44;
     // single layout: shrink the whole ribbon (not just the text) when the text is wider than the screen
     var z = d.repeat ? repeatZoom(d, availW, 220, minH / d.h)
@@ -481,34 +474,18 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     r.style.width = scrolls ? Math.ceil(fullW + 2) + 'px' : '';
     $('swipeHint').hidden = !scrolls;
     if (!scrolls) stage.scrollLeft = 0;
-    r.style.height = Math.round(d.h * z) + 'px';
-    r.style.fontSize = (d.mainPx * z) + 'px';
-    var textBlock = function () {
-      if (!d.sub) { var t1 = document.createElement('span'); t1.className = 'one'; t1.textContent = d.shown; return t1; }
-      var box = document.createElement('span'); box.className = 'two';
-      var m = document.createElement('span'); m.className = 'one'; m.textContent = d.shown;
-      var sb = document.createElement('span'); sb.className = 'one'; sb.style.fontSize = (d.subPx * z) + 'px'; sb.textContent = d.sub;
-      box.appendChild(m); box.appendChild(sb); return box;
-    };
-    if (d.repeat) {
-      for (var i = 0; i < 3; i++) {
-        var s = document.createElement('span'); s.className = 'rep'; s.style.padding = '0 ' + (d.gapPx * z / 2) + 'px';
-        s.appendChild(textBlock()); r.appendChild(s);
-      }
-    } else {
-      var one = textBlock(); one.style.padding = '0 16px'; r.appendChild(one);
-      // measure what the browser actually drew; if it is wider than the ribbon, zoom out until it fits
-      var parts = [one].concat([].slice.call(one.querySelectorAll('.one')));
-      var need = Math.max.apply(null, parts.map(function (e) { return e.scrollWidth; })) + (one.classList.contains('two') ? 32 : 0);
-      var have = r.clientWidth;
-      if (have > 0 && need > have) {
-        z = z * (have / need) * 0.97;
-        r.style.height = Math.round(d.h * z) + 'px';
-        r.style.fontSize = (d.mainPx * z) + 'px';
-        r.textContent = '';
-        one = textBlock(); one.style.padding = '0 16px'; r.appendChild(one);
-      }
-    }
+    var rhPx = Math.max(10, Math.round(d.h * z));
+    r.style.height = rhPx + 'px';
+    var cw = Math.max(10, scrolls ? Math.ceil(fullW + 2) : (r.clientWidth || availW));
+    var cv = r.querySelector('canvas');
+    if (!cv) { r.textContent = ''; cv = document.createElement('canvas'); cv.setAttribute('aria-hidden', 'true'); cv.style.display = 'block'; r.appendChild(cv); }
+    var dpr = Math.min(3, window.devicePixelRatio || 1);
+    cv.width = Math.round(cw * dpr); cv.height = Math.round(rhPx * dpr);
+    cv.style.width = cw + 'px'; cv.style.height = rhPx + 'px';
+    var pctx = cv.getContext('2d');
+    pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    pctx.clearRect(0, 0, cw, rhPx);
+    drawRibbon(pctx, d, { x0: 0, x1: cw, y0: 0, rh: rhPx, repeat: d.repeat });
     $('subCount').textContent = (S.sub || '').length;
     $('sizeLabel').textContent = d.sizeLabel;
     $('specs').innerHTML = d.specs.map(function (x) { return '<div><dt>' + esc(x[0]) + '</dt><dd>' + esc(x[1]) + '</dd></div>'; }).join('');
@@ -579,6 +556,52 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     measureCtx.font = f(d.mainPx); var a = measureCtx.measureText(d.shown).width, b = 0;
     if (d.sub) { measureCtx.font = f(d.subPx); b = measureCtx.measureText(d.sub).width; }
     return Math.max(a, b) + d.gapPx;
+  }
+  // Text measured from the real glyph shapes, so tall fonts never overlap or get clipped
+  function textMetrics(ctx, text, fontStr, px) {
+    ctx.font = fontStr;
+    var m = ctx.measureText(text);
+    var a = m.actualBoundingBoxAscent, ds = m.actualBoundingBoxDescent;
+    if (!(a >= 0)) a = px * 0.75;
+    if (!(ds >= 0)) ds = px * 0.22;
+    return { w: m.width, a: a, d: ds };
+  }
+  // One ribbon strip (background + text). Used by the live preview and the downloadable layout.
+  function drawRibbon(ctx, d, o) {
+    var x0 = o.x0, x1 = o.x1, y0 = o.y0, rh = o.rh, yc = y0 + rh / 2, k = rh / d.h;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x0, y0, x1 - x0, rh);
+    ctx.fillStyle = S.base; ctx.fill();
+    ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.stroke();
+    ctx.clip();
+    var fs = function (size) { return d.font[1] + ' ' + size + 'px "' + d.font[0] + '", ' + d.font[2]; };
+    var px = d.mainPx * k, spx = d.subPx * k;
+    var measure = function () {
+      var m = textMetrics(ctx, d.shown, fs(px), px);
+      var sm = d.sub ? textMetrics(ctx, d.sub, fs(spx), spx) : null;
+      var gap = sm ? Math.max(2, spx * 0.32) : 0;
+      return { m: m, s: sm, gap: gap, h: m.a + m.d + (sm ? gap + sm.a + sm.d : 0), w: Math.max(m.w, sm ? sm.w : 0) };
+    };
+    var mm = measure();
+    var roomH = rh * 0.84;
+    if (mm.h > roomH) { var f = roomH / mm.h; px *= f; spx *= f; mm = measure(); }
+    if (!o.repeat) {
+      var avail = (x1 - x0) - 2 * Math.max(12, rh * 0.15);
+      if (mm.w > avail) { var f2 = avail / mm.w; px *= f2; spx *= f2; mm = measure(); }
+    }
+    ctx.fillStyle = d.ink.hex; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    var top = yc - mm.h / 2;
+    var unit = function (cx) {
+      ctx.font = fs(px); ctx.fillText(d.shown, cx, top + mm.m.a);
+      if (mm.s) { ctx.font = fs(spx); ctx.fillText(d.sub, cx, top + mm.m.a + mm.m.d + mm.gap + mm.s.a); }
+    };
+    if (!o.repeat) unit((x0 + x1) / 2);
+    else {
+      var gapC = d.gapPx * k, step = mm.w + gapC;
+      var x = x0 + ((x1 - x0) - 3 * step) / 2 + gapC / 2;
+      for (var i = 0; i < 3; i++) { unit(x + mm.w / 2); x += step; }
+    }
+    ctx.restore();
   }
   function repeatZoom(d, availW, maxH, minZ) {
     var u = repeatUnitWidth(d);
@@ -663,36 +686,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     var fs = function (size) { return d.font[1] + ' ' + size + 'px "' + d.font[0] + '", ' + d.font[2]; };
     var x0 = M, x1 = W - M;
 
-    function drawStrip(repeat, y0, rh) {
-      var y1 = y0 + rh, yc = (y0 + y1) / 2;
-      ctx.beginPath(); ctx.rect(x0, y0, x1 - x0, rh);
-      ctx.fillStyle = S.base; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.stroke();
-      ctx.save(); ctx.clip();
-      var k = rh / d.h;
-      var px = Math.round(d.mainPx * k), spx = Math.round(d.subPx * k);
-      ctx.fillStyle = d.ink.hex; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
-      var unitWidth = function () {
-        ctx.font = fs(px); var a = ctx.measureText(d.shown).width, b2 = 0;
-        if (d.sub) { ctx.font = fs(spx); b2 = ctx.measureText(d.sub).width; }
-        return Math.max(a, b2);
-      };
-      var drawUnit = function (cx) {
-        if (!d.sub) { ctx.font = fs(px); ctx.fillText(d.shown, cx, yc); return; }
-        var bh = px * 1.1 + spx * 1.1;
-        ctx.font = fs(px); ctx.fillText(d.shown, cx, yc - bh / 2 + px * 0.55);
-        ctx.font = fs(spx); ctx.fillText(d.sub, cx, yc + bh / 2 - spx * 0.55);
-      };
-      if (!repeat) {
-        var avail = (x1 - x0) - 40, uw = unitWidth();
-        if (uw > avail) { var f = avail / uw; px = Math.max(10, Math.floor(px * f)); spx = Math.max(8, Math.floor(spx * f)); }
-        drawUnit(W / 2);
-      } else {
-        var gapC = d.gapPx * k, uw2 = unitWidth(), step = uw2 + gapC;
-        var x = x0 + ((x1 - x0) - 3 * step) / 2 + gapC / 2;
-        for (var ri = 0; ri < 3; ri++) { drawUnit(x + uw2 / 2); x += step; }
-      }
-      ctx.restore();
-    }
+    function drawStrip(repeat, y0, rh) { drawRibbon(ctx, d, { x0: x0, x1: x1, y0: y0, rh: rh, repeat: repeat }); }
 
     var y = zy + 40;
     strips.forEach(function (st) {
