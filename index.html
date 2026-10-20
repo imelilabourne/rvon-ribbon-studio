@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Design your custom printed Double Edge ribbon or sash, then send your layout to RVON on Facebook.">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>RVON Ribbon Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Manrope:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Pacifico&family=Dancing+Script:wght@600&family=Allura&family=Alex+Brush&family=Parisienne&family=Pinyon+Script&family=Sacramento&family=Satisfy&family=Kaushan+Script&family=Tangerine:wght@700&family=Yellowtail&family=Cookie&family=Lobster&family=Courgette&family=Italianno&family=Monsieur+La+Doulaise&family=Herr+Von+Muellerhoff&family=Mrs+Saint+Delafield&family=Rouge+Script&family=Petit+Formal+Script&family=Caveat:wght@600&family=Homemade+Apple&family=Mr+Dafoe&family=Playball&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Cormorant+Garamond:wght@600&family=Lora:wght@600&family=Merriweather:wght@700&family=Libre+Baskerville:wght@700&family=EB+Garamond:wght@600&family=Cinzel:wght@600&family=Cinzel+Decorative:wght@700&family=Prata&family=DM+Serif+Display&family=Abril+Fatface&family=Bodoni+Moda:wght@600&family=Crimson+Text:wght@600&family=Noto+Serif:wght@600&family=Old+Standard+TT:wght@700&family=Marcellus&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&family=Poppins:wght@600&family=Open+Sans:wght@600&family=Raleway:wght@600&family=Lato:wght@700&family=Nunito:wght@700&family=Quicksand:wght@600&family=Josefin+Sans:wght@600&family=Comfortaa:wght@700&family=League+Spartan:wght@600&family=Oswald:wght@500&family=Archivo:wght@600&family=Work+Sans:wght@600&family=Questrial&family=Didact+Gothic&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Anton&family=Alfa+Slab+One&family=Bungee&family=Righteous&family=Fredoka:wght@600&family=Lilita+One&family=Luckiest+Guy&family=Bangers&family=Monoton&family=Special+Elite&family=Amatic+SC:wght@700&family=Shrikhand&family=Chewy&display=swap">
+<style>
+/* Layout: a studio bench — live ribbon preview on the left, the order card on the right; stacks on phones. Single light look by choice so ribbon colors read true. */
+:root {
+  --bg: #F3F4F6; --surface: #FFFFFF; --ink: #17161C; --muted: #55535E;
+  --line: #E2E4E9; --field: #C9CCD4; --accent: #2F4BD8; --accent-ink: #FFFFFF;
+  --stage: #E9EBF0; --note-bg: #FFF4E0; --note-ink: #6B4A00; --fb: #1877F2; --tint: #EEF4FF;
+  --display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --body: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; }
+button, input { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1200px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { background: var(--surface); border-bottom: 1px solid var(--line); }
+header.top .wrap { padding-block: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: -0.01em; }
+.steps { margin: 0; padding: 0; list-style: none; display: flex; gap: 6px; flex-wrap: wrap; font-size: 13px; font-weight: 600; }
+.steps li { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; color: var(--muted); }
+.steps li .dot { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; align-items: center; justify-content: center; font-size: 12px; background: var(--line); color: var(--muted); }
+.steps li.cur { background: var(--ink); color: var(--accent-ink); }
+.steps li.cur .dot { background: var(--accent-ink); color: var(--ink); }
+.steps li.past { color: var(--ink); }
+.steps li.past .dot { background: var(--ink); color: var(--accent-ink); }
+main.wrap { padding-block: 36px 64px; }
+h1 { margin: 0 0 8px; font-family: var(--display); font-weight: 700; font-size: clamp(30px, 5vw, 40px); line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance; }
+.lede { margin: 0 0 28px; font-size: 16px; color: var(--muted); max-width: 62ch; line-height: 1.5; }
+.cols { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.col-main { flex: 999 1 540px; min-width: 0; display: flex; flex-direction: column; gap: 24px; }
+.col-side { flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 24px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.card h2 { margin: 0; font-size: 18px; font-weight: 700; }
+.eyebrow { margin: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.row-between { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.small { font-size: 13px; color: var(--muted); }
+.stage { background: var(--stage); border-radius: 12px; min-height: 240px; display: flex; align-items: center; justify-content: center; padding: 40px 0; overflow: hidden; }
+.ribbon { width: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; line-height: 1.15; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08); }
+.ribbon .one { overflow: hidden; text-overflow: ellipsis; }
+.ribbon .rep { display: inline-flex; align-items: center; }
+.specs { margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px 20px; }
+.specs div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.specs dt { font-size: 13px; color: var(--muted); }
+.specs dd { margin: 0; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+fieldset { margin: 0; padding: 0; border: none; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+legend { font-size: 14px; font-weight: 700; padding: 0; margin-bottom: 10px; }
+legend span, .lbl span { font-weight: 500; color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.pill { min-height: 48px; padding: 6px 8px; border-radius: 10px; border: 1px solid var(--field); background: var(--surface); color: var(--ink); font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.pill small { font-size: 12px; font-weight: 500; opacity: 0.8; }
+.pill[aria-pressed="true"] { background: var(--ink); color: var(--accent-ink); border-color: var(--ink); }
+.pill.round { border-radius: 999px; min-height: 44px; font-size: 13px; }
+.fontbox { max-height: 300px; overflow-y: auto; border: 1px solid var(--line); border-radius: 12px; padding: 8px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.fontbtn { min-height: 52px; padding: 0 10px; font-size: 19px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.lbl { font-size: 14px; font-weight: 700; }
+.text-in { width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid var(--field); border-radius: 10px; background: var(--surface); font-weight: 500; font-size: 16px; }
+input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(--accent); }
+.inks { display: flex; flex-wrap: wrap; gap: 20px; }
+.inkgroup { display: flex; flex-direction: column; gap: 8px; }
+.inkgroup .eyebrow { font-size: 12px; letter-spacing: 0.06em; }
+.inkrow { display: flex; gap: 4px; flex-wrap: wrap; }
+.inkbtn { min-width: 56px; padding: 4px; border: none; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+.inkbtn:disabled { opacity: 0.35; cursor: not-allowed; }
+.dotc { width: 40px; height: 40px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2); }
+[aria-pressed="true"] > .dotc, .sw[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--accent); }
+.note { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--note-bg); color: var(--note-ink); font-size: 13px; font-weight: 600; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.sw { width: 44px; height: 44px; border-radius: 50%; border: none; padding: 0; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2); }
+.qty { display: flex; gap: 8px; }
+.qty button { width: 48px; min-height: 48px; border: 1px solid var(--field); border-radius: 10px; background: var(--surface); font-size: 20px; font-weight: 600; cursor: pointer; }
+.qty input { flex: 1; min-width: 0; min-height: 48px; text-align: center; border: 1px solid var(--field); border-radius: 10px; font-weight: 600; font-size: 16px; }
+.total-line { border-top: 1px solid var(--line); padding-top: 14px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-variant-numeric: tabular-nums; }
+.big { font-family: var(--display); font-size: 28px; font-weight: 700; }
+.btn { min-height: 52px; padding: 0 20px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; border: 1px solid transparent; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-dark { background: var(--ink); color: var(--accent-ink); }
+.btn-outline { background: var(--surface); color: var(--ink); border-color: var(--ink); }
+.btn-ghost { background: var(--surface); color: var(--ink); border-color: var(--field); min-height: 44px; font-size: 14px; font-weight: 600; }
+.btn-fb { background: var(--fb); color: #FFFFFF; }
+.btn-fb:hover { color: #FFFFFF; }
+.back { min-height: 44px; padding: 0 4px; margin: 0 0 12px; border: none; background: none; color: var(--accent); font-weight: 600; font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.dlrow { display: flex; gap: 12px; flex-wrap: wrap; }
+.dlrow .btn { flex: 1 1 200px; }
+.layout-img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 12px; }
+.placeholder { min-height: 260px; border-radius: 12px; background: var(--stage); display: flex; align-items: center; justify-content: center; color: var(--muted); }
+.rows { margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.rows div { display: flex; justify-content: space-between; gap: 12px; }
+.rows dt { color: var(--muted); }
+.rows dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+.howto { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.howto li { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 1.45; }
+.howto .n { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--ink); color: var(--accent-ink); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+.howto li span:last-child { padding-top: 3px; }
+.fbaddr { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 14px; }
+.fbaddr code { font-family: var(--body); font-weight: 700; background: var(--tint); padding: 6px 10px; border-radius: 8px; user-select: all; }
+@media (prefers-reduced-motion: no-preference) { .pill, .sw, .btn { transition: background-color .15s, box-shadow .15s; } }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">RVON Ribbon Studio</div>
+    <ol class="steps" id="steps" aria-label="Order steps"></ol>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- DESIGN STEP -->
+  <section id="viewDesign">
+    <h1>Design your ribbon</h1>
+    <p class="lede">Pick a Double Edge ribbon or a sash, then choose your text, font and ink. The preview and price update as you go.</p>
+    <div class="cols">
+      <div class="col-main">
+        <div class="card">
+          <div class="row-between"><p class="eyebrow">Preview</p><span class="small"><span id="sizeLabel"></span> · not to scale</span></div>
+          <div class="stage"><div class="ribbon" id="ribbon" role="img" aria-label="Ribbon preview"></div></div>
+        </div>
+        <div class="card">
+          <p class="eyebrow">Your specs</p>
+          <dl class="specs" id="specs"></dl>
+          <div><button type="button" class="btn btn-ghost" id="reset">Start over</button></div>
+        </div>
+      </div>
+
+      <div class="col-side">
+        <div class="card" style="gap: 26px">
+          <fieldset><legend>Product</legend><div class="grid2" id="products"></div></fieldset>
+
+          <div id="ribbonOpts" style="display: flex; flex-direction: column; gap: 26px">
+            <fieldset><legend>Width</legend><div class="grid2" id="widths"></div></fieldset>
+            <fieldset><legend>Length per roll</legend><div class="grid3" id="lengths"></div></fieldset>
+          </div>
+          <fieldset id="sashOpts" hidden><legend>Sash size</legend><div class="grid2" id="sashSizes"></div></fieldset>
+
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div class="row-between"><label class="lbl" for="textIn">Text</label><span class="small"><span id="count">0</span>/40</span></div>
+            <input class="text-in" id="textIn" type="text" maxlength="40" placeholder="Your text here" autocomplete="off">
+          </div>
+
+          <fieldset>
+            <legend>Font <span>· <span id="fontName"></span></span></legend>
+            <div class="grid4" id="fontCats"></div>
+            <div class="fontbox" id="fonts"></div>
+            <span class="small"><span id="fontCount"></span> fonts in this group</span>
+          </fieldset>
+
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div class="row-between"><label class="lbl" for="scaleIn">Text size</label><span class="small"><span id="fontPx"></span> px</span></div>
+            <input id="scaleIn" type="range" min="30" max="85" step="1">
+          </div>
+
+          <fieldset id="layoutBox"><legend>Layout</legend><div class="grid2" id="layouts"></div></fieldset>
+
+          <fieldset>
+            <legend>Ink color</legend>
+            <div class="inks">
+              <div class="inkgroup"><span class="eyebrow" id="stdLabel"></span><div class="inkrow" id="stdInks"></div></div>
+              <div class="inkgroup"><span class="eyebrow" id="premLabel"></span><div class="inkrow" id="premInks"></div></div>
+            </div>
+            <p class="note" id="inkNote" hidden></p>
+          </fieldset>
+
+          <fieldset>
+            <legend><span id="baseLabel" style="font-weight: 700; color: var(--ink)"></span> <span>· <span id="baseName"></span></span></legend>
+            <div class="swatches" id="swatches"></div>
+          </fieldset>
+        </div>
+
+        <div class="card">
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label class="lbl" for="qtyIn">Quantity (<span id="qtyUnit"></span>)</label>
+            <div class="qty">
+              <button type="button" id="qtyDown" aria-label="Fewer">−</button>
+              <input id="qtyIn" type="number" min="1" max="999" step="1" inputmode="numeric">
+              <button type="button" id="qtyUp" aria-label="More">+</button>
+            </div>
+          </div>
+          <div class="total-line"><span class="small" style="font-size: 15px" id="qtyLine"></span><span class="big" id="total"></span></div>
+          <button type="button" class="btn btn-primary" id="toSummary">Review order summary</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUMMARY STEP -->
+  <section id="viewSummary" hidden>
+    <button type="button" class="back" id="toDesign"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Back to design</button>
+    <h1>Order summary</h1>
+    <p class="lede">Download your layout, then send it to us on Facebook. We'll confirm the details and arrange payment there.</p>
+    <div class="cols">
+      <div class="col-main">
+        <div class="card">
+          <div class="row-between"><h2>Your layout</h2><span class="small">Ref. <strong style="color: var(--ink)" id="ref"></strong></span></div>
+          <img class="layout-img" id="layoutImg" alt="" hidden>
+          <div class="placeholder" id="imgWait">Preparing your layout…</div>
+          <div class="dlrow" id="dlRow">
+            <button type="button" class="btn btn-dark" id="dlPng"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>Download image (PNG)</button>
+            <button type="button" class="btn btn-outline" id="dlPdf"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>Download PDF</button>
+          </div>
+          <p class="small" id="dlMsg" role="status" hidden></p>
+          <p class="small" style="margin: 0">If the download doesn't work, press and hold (or right-click) the image to save it, or take a screenshot.</p>
+        </div>
+      </div>
+      <div class="col-side">
+        <div class="card">
+          <h2>Order details</h2>
+          <dl class="rows" id="sumRows"></dl>
+          <div class="total-line"><span style="font-weight: 700">Total</span><span class="big" id="sumTotal"></span></div>
+          <span class="small">Delivery fee, if any, is confirmed on Facebook.</span>
+        </div>
+        <div class="card">
+          <h2>How to order</h2>
+          <ol class="howto">
+            <li><span class="n">1</span><span>Download your layout as an image or PDF.</span></li>
+            <li><span class="n">2</span><span>Message us on Facebook and send the file.</span></li>
+            <li><span class="n">3</span><span>We'll confirm your order and send payment details in the chat.</span></li>
+          </ol>
+          <div class="fbaddr"><span class="small">Our page:</span><code>facebook.com/rvonph</code></div>
+          <a class="btn btn-fb" href="https://www.facebook.com/rvonph" target="_blank" rel="noopener noreferrer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.3 7.4L3 21l2-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>Open RVON on Facebook</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  // ---------- Product data (RVON price list) ----------
+  // Prices: [standard ink, premium ink]
+  var RIBBON_PRICES = {
+    10: { '15': [120, 160], '25': [135, 175] },
+    20: { '15': [230, 305], '25': [260, 335] },
+    50: { '15': [555, 735], '25': [625, 810] }
+  };
+  var SASH_PRICES = { '1yd': [110, 125], 'wrap': [130, 145] };
+  var WIDTHS = [{ id: '15', label: '15mm', h: 60 }, { id: '25', label: '25mm', h: 100 }];
+  var LENGTHS = [{ id: 10, label: '10 yards' }, { id: 20, label: '20 yards' }, { id: 50, label: '50 yards' }];
+  var SASH_SIZES = [{ id: '1yd', label: '1 Yard' }, { id: 'wrap', label: 'Wrap Around' }];
+  var RIBBON_INKS = [
+    { id: 'black', name: 'Black', hex: '#17161C', tier: 0 },
+    { id: 'red', name: 'Red', hex: '#B3261E', tier: 0 },
+    { id: 'brown', name: 'Brown', hex: '#6B3E26', tier: 0 },
+    { id: 'gold', name: 'Gold', hex: '#C8A24A', tier: 1 },
+    { id: 'white', name: 'White', hex: '#FFFFFF', tier: 1 }
+  ];
+  var SASH_INKS = [
+    { id: 'black', name: 'Black', hex: '#17161C', tier: 0 },
+    { id: 'gold', name: 'Gold', hex: '#C8A24A', tier: 1 },
+    { id: 'white', name: 'White', hex: '#FFFFFF', tier: 1, factor: 0.95 } // 5% less than gold
+  ];
+  // Preview shades approximate the real ribbon colors
+  var RIBBON_COLORS = [
+    ['Antique Blue', '#7E97AE'], ['Antique Mauve', '#B0828E'], ['Antique White', '#F3EBDD'], ['Apricot Pink', '#F2B8A2'],
+    ['Black', '#17161C'], ['Blue Topaz', '#6FA7C9'], ['Chipmunk', '#8A5A3B'], ['Christmas Red', '#B3121F'],
+    ['Ginger', '#C46A2B'], ['Light Orchid', '#D7B6D9'], ['Natural', '#E6D8BF'], ['Pale Gold', '#D9C27A'],
+    ['Peach', '#F6C6A6'], ['Raspberry Rose', '#B23A63'], ['Royal Blue', '#23409A'], ['Sage Green', '#9AAE8F'],
+    ['White', '#FFFFFF']
+  ].map(function (c) { return { name: c[0], hex: c[1] }; });
+  var SASH_COLORS = [['Navy Blue', '#1F2A5A'], ['Pink Hermosa', '#E58FAE'], ['Black', '#17161C'], ['White', '#FFFFFF']]
+    .map(function (c) { return { name: c[0], hex: c[1] }; });
+
+  var FONT_GROUPS = {
+    script: [['Great Vibes',400,'cursive'],['Pacifico',400,'cursive'],['Dancing Script',600,'cursive'],['Allura',400,'cursive'],['Alex Brush',400,'cursive'],['Parisienne',400,'cursive'],['Pinyon Script',400,'cursive'],['Sacramento',400,'cursive'],['Satisfy',400,'cursive'],['Kaushan Script',400,'cursive'],['Tangerine',700,'cursive'],['Yellowtail',400,'cursive'],['Cookie',400,'cursive'],['Lobster',400,'cursive'],['Courgette',400,'cursive'],['Italianno',400,'cursive'],['Monsieur La Doulaise',400,'cursive'],['Herr Von Muellerhoff',400,'cursive'],['Mrs Saint Delafield',400,'cursive'],['Rouge Script',400,'cursive'],['Petit Formal Script',400,'cursive'],['Caveat',600,'cursive'],['Homemade Apple',400,'cursive'],['Mr Dafoe',400,'cursive'],['Playball',400,'cursive']],
+    serif: [['Playfair Display',600,'serif'],['Cormorant Garamond',600,'serif'],['Lora',600,'serif'],['Merriweather',700,'serif'],['Libre Baskerville',700,'serif'],['EB Garamond',600,'serif'],['Cinzel',600,'serif'],['Cinzel Decorative',700,'serif'],['Prata',400,'serif'],['DM Serif Display',400,'serif'],['Abril Fatface',400,'serif'],['Bodoni Moda',600,'serif'],['Crimson Text',600,'serif'],['Noto Serif',600,'serif'],['Old Standard TT',700,'serif'],['Marcellus',400,'serif']],
+    sans: [['Montserrat',600,'sans-serif'],['Poppins',600,'sans-serif'],['Open Sans',600,'sans-serif'],['Raleway',600,'sans-serif'],['Lato',700,'sans-serif'],['Nunito',700,'sans-serif'],['Quicksand',600,'sans-serif'],['Josefin Sans',600,'sans-serif'],['Comfortaa',700,'sans-serif'],['League Spartan',600,'sans-serif'],['Oswald',500,'sans-serif'],['Archivo',600,'sans-serif'],['Work Sans',600,'sans-serif'],['Questrial',400,'sans-serif'],['Didact Gothic',400,'sans-serif']],
+    display: [['Bebas Neue',400,'sans-serif'],['Anton',400,'sans-serif'],['Alfa Slab One',400,'serif'],['Bungee',400,'sans-serif'],['Righteous',400,'sans-serif'],['Fredoka',600,'sans-serif'],['Lilita One',400,'sans-serif'],['Luckiest Guy',400,'sans-serif'],['Bangers',400,'sans-serif'],['Monoton',400,'sans-serif'],['Special Elite',400,'monospace'],['Amatic SC',700,'sans-serif'],['Shrikhand',400,'serif'],['Chewy',400,'sans-serif']]
+  };
+  var FONT_CATS = [['script', 'Script'], ['serif', 'Serif'], ['sans', 'Sans'], ['display', 'Display']];
+
+  var DEFAULTS = { product: 'ribbon', width: '25', length: 10, sashSize: '1yd', text: 'Happy Anniversary', font: 'Playfair Display', fontCat: 'serif', scale: 55, layout: 'single', ink: 'gold', base: '#17161C', qty: 1 };
+  var S = Object.assign({ step: 'design', ref: '' }, DEFAULTS);
+  var layoutCanvas = null;
+
+  // ---------- helpers ----------
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function peso(n) { return '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function pesoShort(n) { return Number(n) % 1 ? peso(n) : '₱' + Number(n).toLocaleString('en-PH'); }
+  function same(a, b) { return String(a).toLowerCase() === String(b).toLowerCase(); }
+  function findFont(name) {
+    for (var c in FONT_GROUPS) { var g = FONT_GROUPS[c]; for (var i = 0; i < g.length; i++) if (g[i][0] === name) return g[i]; }
+    return FONT_GROUPS.serif[0];
+  }
+  function fam(f) { return "'" + f[0] + "', " + f[2]; }
+  function nameOf(list, hex) { for (var i = 0; i < list.length; i++) if (same(list[i].hex, hex)) return list[i].name; return hex; }
+
+  // ---------- derived order ----------
+  function derive() {
+    var isRibbon = S.product === 'ribbon';
+    var inks = isRibbon ? RIBBON_INKS : SASH_INKS;
+    var colors = isRibbon ? RIBBON_COLORS : SASH_COLORS;
+    var clash = function (x) { return same(x.hex, S.base); };
+    var ink = inks.filter(function (x) { return x.id === S.ink && !clash(x); })[0] || inks.filter(function (x) { return !clash(x); })[0] || inks[0];
+    var w = WIDTHS.filter(function (x) { return x.id === S.width; })[0] || WIDTHS[1];
+    var sz = SASH_SIZES.filter(function (x) { return x.id === S.sashSize; })[0] || SASH_SIZES[0];
+    var font = findFont(S.font);
+    var h = isRibbon ? w.h : 120;
+    var sashPrice = function (id) { return Math.round(SASH_PRICES[id][ink.tier] * (ink.factor || 1) * 100) / 100; };
+    var unit = isRibbon ? RIBBON_PRICES[S.length][w.id][ink.tier] : sashPrice(sz.id);
+    var qty = Math.max(1, S.qty || 1);
+    var shown = S.text.trim() ? S.text : 'Your text here';
+    var repeat = isRibbon && S.layout === 'repeat';
+    var sizeLabel = isRibbon ? w.label + ' × ' + S.length + ' yards' : sz.label;
+    var baseName = nameOf(colors, S.base);
+    var fontPx = Math.round(h * S.scale / 100);
+    var specs = [
+      ['Product', isRibbon ? 'Double Edge ribbon' : 'Sash'],
+      ['Size', sizeLabel],
+      ['Text', shown],
+      ['Font', font[0]],
+      ['Ink', ink.name + (isRibbon && ink.tier ? ' (premium)' : '')],
+      [isRibbon ? 'Ribbon color' : 'Sash color', baseName],
+      ['Text size', fontPx + ' px']
+    ];
+    if (isRibbon) specs.push(['Layout', repeat ? 'Repeating' : 'Single, centered']);
+    return {
+      isRibbon: isRibbon, inks: inks, colors: colors, ink: ink, clashing: inks.filter(clash), clash: clash,
+      w: w, sz: sz, font: font, h: h, notch: isRibbon ? Math.round(h * 0.35) : 0, fontPx: fontPx,
+      sashPrice: sashPrice, unit: unit, qty: qty, total: unit * qty, shown: shown, repeat: repeat,
+      sizeLabel: sizeLabel, baseName: baseName, specs: specs,
+      qtyWord: isRibbon ? (qty === 1 ? 'roll' : 'rolls') : (qty === 1 ? 'piece' : 'pieces')
+    };
+  }
+
+  // ---------- rendering ----------
+  function pill(key, label, on, sub, extra) {
+    return '<button type="button" class="pill' + (extra || '') + '" data-k="' + esc(key) + '" aria-pressed="' + on + '">' +
+      '<span>' + esc(label) + '</span>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</button>';
+  }
+  function render() {
+    var focusKey = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute('data-k');
+    var d = derive();
+
+    $('steps').innerHTML = ['Design', 'Order summary', 'Send on Facebook'].map(function (l, i) {
+      var cur = (S.step === 'design' ? 0 : 1);
+      var cls = i === cur ? 'cur' : (i < cur ? 'past' : '');
+      return '<li class="' + cls + '"' + (i === cur ? ' aria-current="step"' : '') + '><span class="dot">' + (i < cur ? '✓' : i + 1) + '</span>' + l + '</li>';
+    }).join('');
+    $('viewDesign').hidden = S.step !== 'design';
+    $('viewSummary').hidden = S.step !== 'summary';
+
+    // preview
+    var r = $('ribbon');
+    r.style.height = d.h + 'px';
+    r.style.background = S.base;
+    r.style.clipPath = 'polygon(0 0, 100% 0, calc(100% - ' + d.notch + 'px) 50%, 100% 100%, 0 100%, ' + d.notch + 'px 50%)';
+    r.style.color = d.ink.hex;
+    r.style.fontFamily = fam(d.font);
+    r.style.fontWeight = d.font[1];
+    r.style.fontSize = d.fontPx + 'px';
+    r.setAttribute('aria-label', 'Preview: "' + d.shown + '" in ' + d.font[0] + ', ' + d.ink.name + ' ink on ' + d.baseName);
+    r.textContent = '';
+    if (d.repeat) {
+      var gap = Math.max(8, Math.round(d.fontPx * 0.4));
+      for (var i = 0; i < 12; i++) {
+        var s = document.createElement('span'); s.className = 'rep'; s.style.padding = '0 ' + gap + 'px'; s.style.gap = gap + 'px';
+        var t = document.createElement('span'); t.textContent = d.shown;
+        var b = document.createElement('span'); b.textContent = '•'; b.style.opacity = '0.7'; b.setAttribute('aria-hidden', 'true');
+        s.appendChild(t); s.appendChild(b); r.appendChild(s);
+      }
+    } else {
+      var one = document.createElement('span'); one.className = 'one'; one.style.padding = '0 ' + (d.notch + 16) + 'px'; one.textContent = d.shown; r.appendChild(one);
+    }
+    $('sizeLabel').textContent = d.sizeLabel;
+    $('specs').innerHTML = d.specs.map(function (x) { return '<div><dt>' + esc(x[0]) + '</dt><dd>' + esc(x[1]) + '</dd></div>'; }).join('');
+
+    // controls
+    $('products').innerHTML = pill('product:ribbon', 'Double Edge Ribbon', d.isRibbon) + pill('product:sash', 'Sash', !d.isRibbon);
+    $('ribbonOpts').hidden = !d.isRibbon;
+    $('ribbonOpts').style.display = d.isRibbon ? 'flex' : 'none';
+    $('sashOpts').hidden = d.isRibbon;
+    $('layoutBox').hidden = !d.isRibbon;
+    $('widths').innerHTML = WIDTHS.map(function (x) { return pill('width:' + x.id, x.label, x.id === d.w.id); }).join('');
+    $('lengths').innerHTML = LENGTHS.map(function (x) { return pill('length:' + x.id, x.label, x.id === S.length, pesoShort(RIBBON_PRICES[x.id][d.w.id][d.ink.tier])); }).join('');
+    $('sashSizes').innerHTML = SASH_SIZES.map(function (x) { return pill('sashSize:' + x.id, x.label, x.id === d.sz.id, pesoShort(d.sashPrice(x.id))); }).join('');
+    $('count').textContent = S.text.length;
+    $('fontName').textContent = d.font[0];
+    $('fontCats').innerHTML = FONT_CATS.map(function (c) { return pill('fontCat:' + c[0], c[1], c[0] === S.fontCat, null, ' round'); }).join('');
+    $('fonts').innerHTML = FONT_GROUPS[S.fontCat].map(function (f) {
+      return '<button type="button" class="pill fontbtn" data-k="font:' + esc(f[0]) + '" aria-pressed="' + (f[0] === d.font[0]) + '" style="font-family:' + esc(fam(f)) + ';font-weight:' + f[1] + '">' + esc(f[0]) + '</button>';
+    }).join('');
+    $('fontCount').textContent = FONT_GROUPS[S.fontCat].length;
+    $('scaleIn').value = S.scale;
+    $('fontPx').textContent = d.fontPx;
+    $('layouts').innerHTML = pill('layout:single', 'Single', S.layout === 'single') + pill('layout:repeat', 'Repeating', S.layout === 'repeat');
+
+    var inkBtn = function (x) {
+      var off = d.clash(x);
+      return '<button type="button" class="inkbtn" data-k="ink:' + x.id + '" aria-pressed="' + (x.id === d.ink.id) + '"' + (off ? ' disabled' : '') + '><span class="dotc" style="background:' + x.hex + '"></span>' + esc(x.name) + '</button>';
+    };
+    $('stdLabel').textContent = d.isRibbon ? 'Standard ink' : 'Black ink';
+    $('premLabel').textContent = d.isRibbon ? 'Premium ink' : 'Gold & white ink';
+    $('stdInks').innerHTML = d.inks.filter(function (x) { return x.tier === 0; }).map(inkBtn).join('');
+    $('premInks').innerHTML = d.inks.filter(function (x) { return x.tier === 1; }).map(inkBtn).join('');
+    var note = $('inkNote');
+    note.hidden = d.clashing.length === 0;
+    note.textContent = d.clashing.map(function (x) { return x.name; }).join(' and ') + ' ink isn’t available on a ' + d.baseName + (d.isRibbon ? ' ribbon' : ' sash') + ', because the text wouldn’t show.';
+
+    $('baseLabel').textContent = d.isRibbon ? 'Ribbon color' : 'Sash color';
+    $('baseName').textContent = d.baseName;
+    $('swatches').innerHTML = d.colors.map(function (c) {
+      return '<button type="button" class="sw" data-k="base:' + c.hex + '" aria-pressed="' + same(c.hex, S.base) + '" aria-label="' + esc(c.name) + '" title="' + esc(c.name) + '" style="background:' + c.hex + '"></button>';
+    }).join('');
+
+    $('qtyUnit').textContent = d.isRibbon ? 'rolls' : 'pieces';
+    if (document.activeElement !== $('qtyIn')) $('qtyIn').value = S.qty;
+    $('qtyLine').textContent = d.qty + ' × ' + peso(d.unit);
+    $('total').textContent = peso(d.total);
+
+    // summary
+    $('ref').textContent = S.ref;
+    $('sumRows').innerHTML = summaryRows(d).map(function (x) { return '<div><dt>' + esc(x[0]) + '</dt><dd>' + esc(x[1]) + '</dd></div>'; }).join('');
+    $('sumTotal').textContent = peso(d.total);
+
+    if (focusKey) {
+      var el = document.querySelector('[data-k="' + focusKey.replace(/"/g, '\\"') + '"]');
+      if (el && !el.disabled) el.focus({ preventScroll: true });
+    }
+  }
+  function summaryRows(d) {
+    return d.specs.filter(function (x) { return x[0] !== 'Text size'; }).concat([['Quantity', d.qty + ' ' + d.qtyWord], ['Price each', peso(d.unit)]]);
+  }
+
+  // ---------- interactions ----------
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-k]');
+    if (!b || b.disabled) return;
+    var k = b.getAttribute('data-k'), i = k.indexOf(':'), key = k.slice(0, i), val = k.slice(i + 1);
+    if (key === 'product') {
+      var inks = val === 'ribbon' ? RIBBON_INKS : SASH_INKS;
+      var colors = val === 'ribbon' ? RIBBON_COLORS : SASH_COLORS;
+      if (!inks.some(function (x) { return x.id === S.ink; })) S.ink = inks[0].id;
+      if (!colors.some(function (c) { return same(c.hex, S.base); })) S.base = '#17161C';
+      S.product = val;
+    } else if (key === 'length') S.length = Number(val);
+    else if (key === 'width') S.width = val;
+    else if (key === 'sashSize') S.sashSize = val;
+    else if (key === 'fontCat') S.fontCat = val;
+    else if (key === 'font') S.font = val;
+    else if (key === 'layout') S.layout = val;
+    else if (key === 'ink') S.ink = val;
+    else if (key === 'base') S.base = val;
+    render();
+  });
+  $('textIn').addEventListener('input', function (e) { S.text = e.target.value.slice(0, 40); render(); });
+  $('scaleIn').addEventListener('input', function (e) { S.scale = Number(e.target.value); render(); });
+  $('qtyIn').addEventListener('input', function (e) { var v = parseInt(e.target.value, 10); S.qty = isNaN(v) ? 1 : Math.min(999, Math.max(1, v)); render(); });
+  $('qtyIn').addEventListener('blur', function () { $('qtyIn').value = S.qty; });
+  $('qtyDown').addEventListener('click', function () { S.qty = Math.max(1, S.qty - 1); render(); });
+  $('qtyUp').addEventListener('click', function () { S.qty = Math.min(999, S.qty + 1); render(); });
+  $('reset').addEventListener('click', function () { Object.assign(S, DEFAULTS); $('textIn').value = S.text; render(); });
+  $('toDesign').addEventListener('click', function () { S.step = 'design'; render(); window.scrollTo(0, 0); });
+  $('toSummary').addEventListener('click', function () {
+    S.step = 'summary';
+    S.ref = 'RV-' + String(Math.floor(100000 + Math.random() * 900000));
+    layoutCanvas = null;
+    $('layoutImg').hidden = true; $('imgWait').hidden = false; setMsg('');
+    render(); window.scrollTo(0, 0);
+    buildLayout();
+  });
+
+  // ---------- layout image ----------
+  function rr(ctx, x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+  }
+  function drawLayout(d, ref, date) {
+    var rows = summaryRows(d);
+    var W = 1000, SC = 2, M = 48;
+    var rh = Math.round(d.h * 1.5), zoneH = rh + 120;
+    var H = M + 100 + zoneH + 36 + rows.length * 38 + 70 + 36 + 96 + M;
+    var c = document.createElement('canvas'); c.width = W * SC; c.height = H * SC;
+    var ctx = c.getContext('2d'); ctx.scale(SC, SC);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, H);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#17161C'; ctx.font = '700 34px "Bricolage Grotesque", sans-serif'; ctx.fillText('RVON Ribbon Studio', M, M + 34);
+    ctx.fillStyle = '#55535E'; ctx.font = '500 18px Manrope, sans-serif'; ctx.fillText('Order layout · Ref. ' + ref + ' · ' + date, M, M + 68);
+
+    var zy = M + 100;
+    rr(ctx, M, zy, W - 2 * M, zoneH, 16); ctx.fillStyle = '#E9EBF0'; ctx.fill();
+    var x0 = M, x1 = W - M, y0 = zy + 60, y1 = y0 + rh, yc = (y0 + y1) / 2, n = d.isRibbon ? Math.round(rh * 0.35) : 0;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y0); ctx.lineTo(x1 - n, yc); ctx.lineTo(x1, y1); ctx.lineTo(x0, y1); ctx.lineTo(x0 + n, yc); ctx.closePath();
+    ctx.fillStyle = S.base; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.stroke();
+    ctx.save(); ctx.clip();
+    var px = Math.round(rh * S.scale / 100);
+    var fs = function (size) { return d.font[1] + ' ' + size + 'px "' + d.font[0] + '", ' + d.font[2]; };
+    ctx.font = fs(px); ctx.fillStyle = d.ink.hex; ctx.textBaseline = 'middle';
+    if (!d.repeat) {
+      var avail = (x1 - x0) - 2 * (n + 20), tw = ctx.measureText(d.shown).width;
+      if (tw > avail) { px = Math.max(10, Math.floor(px * avail / tw)); ctx.font = fs(px); }
+      ctx.textAlign = 'center'; ctx.fillText(d.shown, W / 2, yc);
+    } else {
+      ctx.textAlign = 'left';
+      var gap = Math.max(12, Math.round(px * 0.4)), x = x0 + n + 8;
+      while (x < x1) { ctx.fillText(d.shown, x, yc); x += ctx.measureText(d.shown).width + gap; ctx.fillText('•', x, yc); x += ctx.measureText('•').width + gap; }
+    }
+    ctx.restore();
+    ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.fillStyle = '#55535E'; ctx.font = '500 13px Manrope, sans-serif';
+    ctx.fillText('Preview not to scale', M + 16, zy + zoneH - 16);
+
+    var ry = zy + zoneH + 36;
+    rows.forEach(function (row, i) {
+      var yy = ry + i * 38 + 20;
+      ctx.textAlign = 'left'; ctx.fillStyle = '#55535E'; ctx.font = '500 17px Manrope, sans-serif'; ctx.fillText(row[0], M, yy);
+      ctx.textAlign = 'right'; ctx.fillStyle = '#17161C'; ctx.font = '700 17px Manrope, sans-serif'; ctx.fillText(row[1], W - M, yy);
+      ctx.fillStyle = '#E2E4E9'; ctx.fillRect(M, yy + 14, W - 2 * M, 1);
+    });
+    var ty = ry + rows.length * 38 + 50;
+    ctx.textAlign = 'left'; ctx.fillStyle = '#17161C'; ctx.font = '700 22px Manrope, sans-serif'; ctx.fillText('Total', M, ty);
+    ctx.textAlign = 'right'; ctx.font = '700 30px "Bricolage Grotesque", sans-serif'; ctx.fillText(peso(d.total), W - M, ty);
+    var fy = ty + 36;
+    rr(ctx, M, fy, W - 2 * M, 96, 14); ctx.fillStyle = '#EEF4FF'; ctx.fill();
+    ctx.textAlign = 'left'; ctx.fillStyle = '#17161C'; ctx.font = '700 19px Manrope, sans-serif'; ctx.fillText('Send this layout to facebook.com/rvonph', M + 24, fy + 40);
+    ctx.fillStyle = '#55535E'; ctx.font = '500 16px Manrope, sans-serif'; ctx.fillText('We will confirm your order and arrange payment in the chat.', M + 24, fy + 70);
+    return c;
+  }
+  function buildLayout() {
+    var d = derive(), ref = S.ref;
+    var date = new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
+    var loads = ['700 34px "Bricolage Grotesque"', '500 18px Manrope', '700 18px Manrope', d.font[1] + ' 40px "' + d.font[0] + '"']
+      .map(function (f) { try { return document.fonts.load(f, d.shown + ' RVON ₱0123456789'); } catch (e) { return Promise.resolve(); } });
+    Promise.all(loads).catch(function () {}).then(function () {
+      if (S.ref !== ref) return;
+      try {
+        layoutCanvas = drawLayout(d, ref, date);
+        var img = $('layoutImg');
+        img.src = layoutCanvas.toDataURL('image/png');
+        img.alt = 'Order layout ' + ref + ': ' + d.sizeLabel + ', "' + d.shown + '" in ' + d.font[0] + ', ' + d.ink.name + ' ink on ' + d.baseName;
+        img.hidden = false; $('imgWait').hidden = true;
+      } catch (err) {
+        $('imgWait').textContent = 'We couldn’t draw your layout. Please take a screenshot of the order details instead.';
+      }
+    });
+  }
+
+  // ---------- PDF (single page, layout image) ----------
+  function pdfFromCanvas(c) {
+    var dataUrl = c.toDataURL('image/jpeg', 0.92);
+    var bin = atob(dataUrl.split(',')[1]), img = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) img[i] = bin.charCodeAt(i);
+    var pw = 595.28, ph = Math.round(595.28 * c.height / c.width * 100) / 100;
+    var content = 'q ' + pw + ' 0 0 ' + ph + ' 0 0 cm /Im0 Do Q';
+    var enc = new TextEncoder(), parts = [], off = [], len = 0;
+    var add = function (p) { var u = typeof p === 'string' ? enc.encode(p) : p; parts.push(u); len += u.length; };
+    add('%PDF-1.4\n');
+    off[1] = len; add('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+    off[2] = len; add('2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');
+    off[3] = len; add('3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + pw + ' ' + ph + '] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>\nendobj\n');
+    off[4] = len; add('4 0 obj\n<< /Type /XObject /Subtype /Image /Width ' + c.width + ' /Height ' + c.height + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + img.length + ' >>\nstream\n');
+    add(img); add('\nendstream\nendobj\n');
+    off[5] = len; add('5 0 obj\n<< /Length ' + content.length + ' >>\nstream\n' + content + '\nendstream\nendobj\n');
+    var xref = len, x = 'xref\n0 6\n0000000000 65535 f \n';
+    for (var k = 1; k <= 5; k++) x += ('0000000000' + off[k]).slice(-10) + ' 00000 n \n';
+    add(x + 'trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF\n');
+    return new Blob(parts, { type: 'application/pdf' });
+  }
+
+  // ---------- downloads (platform save) ----------
+  var downloadsP = (window.claude && typeof window.claude.use === 'function') ? window.claude.use('downloads').catch(function () { return null; }) : Promise.resolve(null);
+  function setMsg(t) { var m = $('dlMsg'); m.textContent = t; m.hidden = !t; }
+  function save(kind) {
+    if (!layoutCanvas) { setMsg('Your layout is still being prepared. Try again in a moment.'); return; }
+    var name = 'RVON-order-' + S.ref + '.' + kind;
+    var blobP = kind === 'png'
+      ? new Promise(function (res) { layoutCanvas.toBlob(res, 'image/png'); })
+      : Promise.resolve(pdfFromCanvas(layoutCanvas));
+    setMsg('Preparing ' + name + '…');
+    Promise.all([downloadsP, blobP]).then(function (v) {
+      var dl = v[0], blob = v[1];
+      if (!blob) { setMsg('That file couldn’t be created. Please take a screenshot instead.'); return; }
+      if (!dl) {
+        // Hosted on a normal website (e.g. GitHub Pages): a plain browser download works there.
+        try {
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url; a.download = name; a.rel = 'noopener';
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+          setMsg('Downloading ' + name + '. Then send it to us on Facebook.');
+        } catch (e) {
+          setMsg('The download didn’t start. Press and hold (or right-click) the image to save it, or take a screenshot.');
+        }
+        return;
+      }
+      return dl.save({ filename: name, data: blob }).then(function () {
+        setMsg('Saved ' + name + '. Now send it to us on Facebook.');
+      }, function (err) {
+        var code = err && err.code;
+        if (code === 'declined') setMsg('Download cancelled.');
+        else if (code === 'rate_limited') setMsg('A download is already waiting for your OK.');
+        else setMsg('The download didn’t go through. Press and hold the image to save it, or take a screenshot.');
+      });
+    });
+  }
+  $('dlPng').addEventListener('click', function () { save('png'); });
+  $('dlPdf').addEventListener('click', function () { save('pdf'); });
+
+  // ---------- start ----------
+  $('textIn').value = S.text;
+  render();
+  window.__rvon = { state: S, save: save, getCanvas: function () { return layoutCanvas; }, pdf: pdfFromCanvas };
+})();
+</script>
+</body>
+</html>
