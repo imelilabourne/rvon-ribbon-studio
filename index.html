@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light only">
 <meta name="description" content="Design your custom printed Double Edge ribbon or sash, then send your layout to RVON on Facebook.">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
@@ -22,7 +23,7 @@
   --stage: #E9EBF0; --note-bg: #FFF4E0; --note-ink: #6B4A00; --fb: #1877F2; --tint: #EEF4FF;
   --display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
   --body: 'Manrope', 'Segoe UI', system-ui, sans-serif;
-  color-scheme: light;
+  color-scheme: light only;
 }
 * { box-sizing: border-box; }
 body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; }
@@ -87,7 +88,9 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 .sw { width: 44px; height: 44px; border-radius: 50%; border: none; padding: 0; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2); }
 .qty { display: flex; gap: 8px; }
 .qty button { width: 48px; min-height: 48px; border: 1px solid var(--field); border-radius: 10px; background: var(--surface); font-size: 20px; font-weight: 600; cursor: pointer; }
-.qty input { flex: 1; min-width: 0; min-height: 48px; text-align: center; border: 1px solid var(--field); border-radius: 10px; font-weight: 600; font-size: 16px; }
+.qty input { flex: 1; min-width: 0; min-height: 48px; text-align: center; border: 1px solid var(--field); border-radius: 10px; font-weight: 600; font-size: 16px; background: var(--surface); color: var(--ink); }
+/* light-only page: every field paints its own white background so phone dark modes can't darken it */
+input[type=text], input[type=number], .qty button, .unit-in input { background-color: var(--surface); color: var(--ink); -webkit-text-fill-color: var(--ink); opacity: 1; }
 .total-line { border-top: 1px solid var(--line); padding-top: 14px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-variant-numeric: tabular-nums; }
 .big { font-family: var(--display); font-size: 28px; font-weight: 700; }
 .btn { min-height: 52px; padding: 0 20px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; border: 1px solid transparent; }
