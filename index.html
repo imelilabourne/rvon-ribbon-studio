@@ -127,6 +127,8 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 .field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .stack { display: flex; flex-direction: column; gap: 22px; }
 .split { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 22px; align-items: start; }
+.font-note { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--tint); font-size: 13px; line-height: 1.45; color: var(--ink); }
+.font-note a { font-weight: 700; color: var(--accent); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .design .card { gap: 22px; }
 @media (prefers-reduced-motion: no-preference) { .pill, .sw, .btn { transition: background-color .15s, box-shadow .15s; } }
@@ -162,6 +164,7 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
             <div class="grid4" id="fontCats"></div>
             <div class="fontbox" id="fonts"></div>
             <span class="small"><span id="fontCount"></span> fonts in this group</span>
+            <p class="font-note">Want a different font? Just send us a message on <a href="https://www.facebook.com/rvonph" target="_blank" rel="noopener noreferrer">Facebook</a> and we'll check if we can use it.</p>
           </fieldset>
           <div class="split">
             <div class="field">
