@@ -425,16 +425,19 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
     r.style.fontSize = d.mainPx + 'px';
     r.setAttribute('aria-label', 'Preview: "' + d.shown + '"' + (d.sub ? ' with "' + d.sub + '" underneath' : '') + ' in ' + d.font[0] + ', ' + d.ink.name + ' ink on ' + d.baseName);
     r.textContent = '';
+    var z = d.repeat ? repeatZoom(d, r.parentElement.clientWidth * 0.98, 220) : 1;
+    r.style.height = Math.round(d.h * z) + 'px';
+    r.style.fontSize = (d.mainPx * z) + 'px';
     var textBlock = function () {
       if (!d.sub) { var t1 = document.createElement('span'); t1.className = 'one'; t1.textContent = d.shown; return t1; }
       var box = document.createElement('span'); box.className = 'two';
       var m = document.createElement('span'); m.className = 'one'; m.textContent = d.shown;
-      var sb = document.createElement('span'); sb.className = 'one'; sb.style.fontSize = d.subPx + 'px'; sb.textContent = d.sub;
+      var sb = document.createElement('span'); sb.className = 'one'; sb.style.fontSize = (d.subPx * z) + 'px'; sb.textContent = d.sub;
       box.appendChild(m); box.appendChild(sb); return box;
     };
     if (d.repeat) {
-      for (var i = 0; i < 16; i++) {
-        var s = document.createElement('span'); s.className = 'rep'; s.style.padding = '0 ' + (d.gapPx / 2) + 'px';
+      for (var i = 0; i < 3; i++) {
+        var s = document.createElement('span'); s.className = 'rep'; s.style.padding = '0 ' + (d.gapPx * z / 2) + 'px';
         s.appendChild(textBlock()); r.appendChild(s);
       }
     } else {
@@ -503,6 +506,19 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
       if (el && !el.disabled) el.focus({ preventScroll: true });
     }
   }
+  // Repeating layout: zoom the whole ribbon (height, text, gap) so exactly 3 repeats fill the width
+  var measureCtx = document.createElement('canvas').getContext('2d');
+  function repeatUnitWidth(d) {
+    var f = function (px) { return d.font[1] + ' ' + px + 'px "' + d.font[0] + '", ' + d.font[2]; };
+    measureCtx.font = f(d.mainPx); var a = measureCtx.measureText(d.shown).width, b = 0;
+    if (d.sub) { measureCtx.font = f(d.subPx); b = measureCtx.measureText(d.sub).width; }
+    return Math.max(a, b) + d.gapPx;
+  }
+  function repeatZoom(d, availW, maxH) {
+    var u = repeatUnitWidth(d);
+    if (!(u > 0) || !(availW > 0)) return 1;
+    return Math.max(0.3, Math.min(availW / (3 * u), maxH / d.h));
+  }
   function summaryRows(d) {
     return d.specs.filter(function (x) { return x[0] !== 'Text size'; }).concat([['Quantity', d.qty + ' ' + d.qtyWord], ['Price each', peso(d.unit)]]);
   }
@@ -559,7 +575,7 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
   function drawLayout(d, ref, date) {
     var rows = summaryRows(d);
     var W = 1000, SC = 2, M = 48;
-    var rh = Math.round(d.h * 1.5), zoneH = rh + 120;
+    var rh = d.repeat ? Math.round(d.h * repeatZoom(d, (W - 2 * M) * 0.98, 300)) : Math.round(d.h * 1.5), zoneH = rh + 120;
     var H = M + 100 + zoneH + 36 + rows.length * 38 + 70 + 36 + 96 + M;
     var c = document.createElement('canvas'); c.width = W * SC; c.height = H * SC;
     var ctx = c.getContext('2d'); ctx.scale(SC, SC);
@@ -594,8 +610,9 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
       if (uw > avail) { var f = avail / uw; px = Math.max(10, Math.floor(px * f)); spx = Math.max(8, Math.floor(spx * f)); }
       drawUnit(W / 2);
     } else {
-      var gapC = d.gapPx * k, uw2 = unitWidth(), step = Math.max(1, uw2 + gapC), x = x0 + gapC / 2;
-      while (x < x1) { drawUnit(x + uw2 / 2); x += step; }
+      var gapC = d.gapPx * k, uw2 = unitWidth(), step = uw2 + gapC;
+      var x = x0 + ((x1 - x0) - 3 * step) / 2 + gapC / 2;
+      for (var ri = 0; ri < 3; ri++) { drawUnit(x + uw2 / 2); x += step; }
     }
     ctx.restore();
     ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.fillStyle = '#55535E'; ctx.font = '500 13px Manrope, sans-serif';
@@ -697,6 +714,11 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
   }
   $('dlPng').addEventListener('click', function () { save('png'); });
   $('dlPdf').addEventListener('click', function () { save('pdf'); });
+
+  // re-fit the preview when the window size changes or a font finishes loading
+  var rafId = 0;
+  window.addEventListener('resize', function () { cancelAnimationFrame(rafId); rafId = requestAnimationFrame(render); });
+  if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', function () { render(); });
 
   // ---------- start ----------
   $('textIn').value = S.text;
