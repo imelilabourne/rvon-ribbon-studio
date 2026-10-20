@@ -178,6 +178,9 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   .o1 .eyebrow { font-size: 11px; }
   .stage { padding: 10px 0; border-radius: 8px; }
 }
+.select-in { appearance: none; -webkit-appearance: none; background-color: var(--surface); color: var(--ink); padding-right: 40px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2355535E' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .design .card { gap: 22px; }
 @media (prefers-reduced-motion: no-preference) { .pill, .sw, .btn { transition: background-color .15s, box-shadow .15s; } }
@@ -213,6 +216,10 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
             <div class="row-between"><label class="lbl" for="subIn">Second line <span>(optional)</span></label><span class="small"><span id="subCount">0</span>/50</span></div>
             <input class="text-in" id="subIn" type="text" maxlength="50" placeholder="e.g. names, date or venue" autocomplete="off">
             <span class="small">Prints smaller, under your main text.</span>
+          </div>
+          <div class="field" id="subFontBox" hidden>
+            <label class="lbl" for="subFontSel">Second line font</label>
+            <select id="subFontSel" class="text-in select-in"></select>
           </div>
           <fieldset>
             <legend>Font <span>· <span id="fontName"></span></span></legend>
@@ -374,7 +381,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   };
   var FONT_CATS = [['script', 'Script'], ['serif', 'Serif'], ['sans', 'Sans'], ['display', 'Display']];
 
-  var DEFAULTS = { product: 'ribbon', width: '25', length: 10, sashSize: '1yd', text: 'Happy Anniversary', sub: '', subScale: 26, gapMm: 20, font: 'Playfair Display', fontCat: 'serif', scale: 55, layout: 'single', ink: 'gold', base: '#17161C', qty: 1 };
+  var DEFAULTS = { product: 'ribbon', width: '25', length: 10, sashSize: '1yd', text: 'Happy Anniversary', sub: '', subFont: '', subScale: 26, gapMm: 20, font: 'Playfair Display', fontCat: 'serif', scale: 55, layout: 'single', ink: 'gold', base: '#17161C', qty: 1 };
   var S = Object.assign({ step: 'design', ref: '' }, DEFAULTS);
   var layoutCanvas = null;
 
@@ -401,6 +408,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     var w = WIDTHS.filter(function (x) { return x.id === S.width; })[0] || WIDTHS[1];
     var sz = SASH_SIZES.filter(function (x) { return x.id === S.sashSize; })[0] || SASH_SIZES[0];
     var font = findFont(S.font);
+    var subFont = S.subFont ? findFont(S.subFont) : font;
     var h = isRibbon ? w.h : 120;
     var sashPrice = function (id) { return Math.round(SASH_PRICES[id][ink.tier] * (ink.factor || 1) * 100) / 100; };
     var unit = isRibbon ? RIBBON_PRICES[S.length][w.id][ink.tier] : sashPrice(sz.id);
@@ -429,12 +437,13 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
       ['Text size', mainPx + ' px']
     ];
     if (sub) specs.splice(3, 0, ['Second line', sub]);
+    if (sub && S.subFont) specs.splice(5, 0, ['Second line font', subFont[0]]);
     if (sub) specs.push(['Second line size', subPx + ' px']);
     if (isRibbon) specs.push(['Layout', repeat ? 'Repeating' : 'Single, centered']);
     if (isRibbon) specs.push(['Gap between repeats', gapMm + ' mm']);
     return {
       isRibbon: isRibbon, inks: inks, colors: colors, ink: ink, clashing: inks.filter(clash), clash: clash,
-      w: w, sz: sz, font: font, h: h, notch: 0, fontPx: fontPx, sub: sub, mainPx: mainPx, subPx: subPx, gapMm: gapMm, gapPx: gapPx,
+      w: w, sz: sz, font: font, subFont: subFont, h: h, notch: 0, fontPx: fontPx, sub: sub, mainPx: mainPx, subPx: subPx, gapMm: gapMm, gapPx: gapPx,
       sashPrice: sashPrice, unit: unit, qty: qty, total: unit * qty, shown: shown, repeat: repeat,
       sizeLabel: sizeLabel, baseName: baseName, specs: specs,
       qtyWord: isRibbon ? (qty === 1 ? 'roll' : 'rolls') : (qty === 1 ? 'piece' : 'pieces')
@@ -509,6 +518,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     $('scaleIn').value = S.scale;
     $('fontPx').textContent = d.mainPx;
     $('subSizeBox').hidden = !d.sub;
+    $('subFontBox').hidden = !d.sub;
+    $('subFontSel').value = S.subFont;
     $('subScaleIn').value = S.subScale;
     $('subPxLbl').textContent = d.subPx;
     $('gapBox').hidden = !d.isRibbon; // repeating version is always shown on the order layout, so the gap is always set
@@ -554,7 +565,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   function repeatUnitWidth(d) {
     var f = function (px) { return d.font[1] + ' ' + px + 'px "' + d.font[0] + '", ' + d.font[2]; };
     measureCtx.font = f(d.mainPx); var a = measureCtx.measureText(d.shown).width, b = 0;
-    if (d.sub) { measureCtx.font = f(d.subPx); b = measureCtx.measureText(d.sub).width; }
+    if (d.sub) { measureCtx.font = d.subFont[1] + ' ' + d.subPx + 'px "' + d.subFont[0] + '", ' + d.subFont[2]; b = measureCtx.measureText(d.sub).width; }
     return Math.max(a, b) + d.gapPx;
   }
   // Text measured from the real glyph shapes, so tall fonts never overlap or get clipped
@@ -575,10 +586,11 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.stroke();
     ctx.clip();
     var fs = function (size) { return d.font[1] + ' ' + size + 'px "' + d.font[0] + '", ' + d.font[2]; };
+    var fsS = function (size) { return d.subFont[1] + ' ' + size + 'px "' + d.subFont[0] + '", ' + d.subFont[2]; };
     var px = d.mainPx * k, spx = d.subPx * k;
     var measure = function () {
       var m = textMetrics(ctx, d.shown, fs(px), px);
-      var sm = d.sub ? textMetrics(ctx, d.sub, fs(spx), spx) : null;
+      var sm = d.sub ? textMetrics(ctx, d.sub, fsS(spx), spx) : null;
       var gap = sm ? Math.max(2, spx * 0.32) : 0;
       return { m: m, s: sm, gap: gap, h: m.a + m.d + (sm ? gap + sm.a + sm.d : 0), w: Math.max(m.w, sm ? sm.w : 0) };
     };
@@ -593,7 +605,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     var top = yc - mm.h / 2;
     var unit = function (cx) {
       ctx.font = fs(px); ctx.fillText(d.shown, cx, top + mm.m.a);
-      if (mm.s) { ctx.font = fs(spx); ctx.fillText(d.sub, cx, top + mm.m.a + mm.m.d + mm.gap + mm.s.a); }
+      if (mm.s) { ctx.font = fsS(spx); ctx.fillText(d.sub, cx, top + mm.m.a + mm.m.d + mm.gap + mm.s.a); }
     };
     if (!o.repeat) unit((x0 + x1) / 2);
     else {
@@ -635,6 +647,14 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   });
   $('textIn').addEventListener('input', function (e) { S.text = e.target.value.slice(0, 40); render(); });
   $('subIn').addEventListener('input', function (e) { S.sub = e.target.value.slice(0, 50); render(); });
+  (function () {
+    var sel = $('subFontSel'), html = '<option value="">Same as main text</option>';
+    FONT_CATS.forEach(function (c) {
+      html += '<optgroup label="' + c[1] + '">' + FONT_GROUPS[c[0]].map(function (f) { return '<option value="' + esc(f[0]) + '">' + esc(f[0]) + '</option>'; }).join('') + '</optgroup>';
+    });
+    sel.innerHTML = html;
+    sel.addEventListener('change', function (e) { S.subFont = e.target.value; render(); });
+  })();
   $('subScaleIn').addEventListener('input', function (e) { S.subScale = Number(e.target.value); render(); });
   $('gapIn').addEventListener('input', function (e) { S.gapMm = Number(e.target.value); render(); });
   $('gapNum').addEventListener('input', function (e) { var v = parseInt(e.target.value, 10); if (!isNaN(v)) { S.gapMm = Math.max(0, Math.min(100, v)); render(); } });
@@ -728,7 +748,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   function buildLayout() {
     var d = derive(), ref = S.ref;
     var date = new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
-    var loads = ['700 34px "Bricolage Grotesque"', '500 18px Manrope', '700 18px Manrope', d.font[1] + ' 40px "' + d.font[0] + '"']
+    var loads = ['700 34px "Bricolage Grotesque"', '500 18px Manrope', '700 18px Manrope', d.font[1] + ' 40px "' + d.font[0] + '"', d.subFont[1] + ' 40px "' + d.subFont[0] + '"']
       .map(function (f) { try { return document.fonts.load(f, d.shown + ' RVON ₱0123456789'); } catch (e) { return Promise.resolve(); } });
     Promise.all(loads).catch(function () {}).then(function () {
       if (S.ref !== ref) return;
