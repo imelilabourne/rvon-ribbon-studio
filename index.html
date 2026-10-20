@@ -431,7 +431,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     if (sub) specs.splice(3, 0, ['Second line', sub]);
     if (sub) specs.push(['Second line size', subPx + ' px']);
     if (isRibbon) specs.push(['Layout', repeat ? 'Repeating' : 'Single, centered']);
-    if (repeat) specs.push(['Gap between repeats', gapMm + ' mm']);
+    if (isRibbon) specs.push(['Gap between repeats', gapMm + ' mm']);
     return {
       isRibbon: isRibbon, inks: inks, colors: colors, ink: ink, clashing: inks.filter(clash), clash: clash,
       w: w, sz: sz, font: font, h: h, notch: 0, fontPx: fontPx, sub: sub, mainPx: mainPx, subPx: subPx, gapMm: gapMm, gapPx: gapPx,
@@ -534,7 +534,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     $('subSizeBox').hidden = !d.sub;
     $('subScaleIn').value = S.subScale;
     $('subPxLbl').textContent = d.subPx;
-    $('gapBox').hidden = !d.repeat;
+    $('gapBox').hidden = !d.isRibbon; // repeating version is always shown on the order layout, so the gap is always set
     $('gapIn').value = d.gapMm;
     if (document.activeElement !== $('gapNum')) $('gapNum').value = d.gapMm;
     $('layouts').innerHTML = pill('layout:single', 'Single', S.layout === 'single') + pill('layout:repeat', 'Repeating', S.layout === 'repeat');
@@ -641,7 +641,15 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   function drawLayout(d, ref, date) {
     var rows = summaryRows(d);
     var W = 1000, SC = 2, M = 48;
-    var rh = d.repeat ? Math.round(d.h * repeatZoom(d, (W - 2 * M) * 0.98, 300)) : Math.round(d.h * 1.5), zoneH = rh + 120;
+    // Ribbons: show both the single and the repeating version, with the customer's choice marked. Sashes: single only.
+    var strips = d.isRibbon ? [{ repeat: false }, { repeat: true }] : [{ repeat: false }];
+    strips.forEach(function (st) {
+      st.rh = st.repeat ? Math.round(d.h * repeatZoom(d, (W - 2 * M) * 0.98, 300)) : Math.round(d.h * 1.5);
+      st.label = st.repeat ? 'Repeating · ' + d.gapMm + ' mm gap' : 'Single, centered';
+      st.chosen = d.isRibbon && st.repeat === d.repeat;
+    });
+    var labelH = d.isRibbon ? 34 : 0;
+    var zoneH = 40 + strips.reduce(function (a, st) { return a + labelH + st.rh + 36; }, 0) + 24;
     var H = M + 100 + zoneH + 36 + rows.length * 38 + 70 + 36 + 96 + M;
     var c = document.createElement('canvas'); c.width = W * SC; c.height = H * SC;
     var ctx = c.getContext('2d'); ctx.scale(SC, SC);
@@ -652,35 +660,58 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 
     var zy = M + 100;
     rr(ctx, M, zy, W - 2 * M, zoneH, 16); ctx.fillStyle = '#E9EBF0'; ctx.fill();
-    var x0 = M, x1 = W - M, y0 = zy + 60, y1 = y0 + rh, yc = (y0 + y1) / 2, n = 0;
-    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y0); ctx.lineTo(x1 - n, yc); ctx.lineTo(x1, y1); ctx.lineTo(x0, y1); ctx.lineTo(x0 + n, yc); ctx.closePath();
-    ctx.fillStyle = S.base; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.stroke();
-    ctx.save(); ctx.clip();
-    var k = rh / d.h;
-    var px = Math.round(d.mainPx * k), spx = Math.round(d.subPx * k);
     var fs = function (size) { return d.font[1] + ' ' + size + 'px "' + d.font[0] + '", ' + d.font[2]; };
-    ctx.fillStyle = d.ink.hex; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
-    var unitWidth = function () {
-      ctx.font = fs(px); var a = ctx.measureText(d.shown).width, b2 = 0;
-      if (d.sub) { ctx.font = fs(spx); b2 = ctx.measureText(d.sub).width; }
-      return Math.max(a, b2);
-    };
-    var drawUnit = function (cx) {
-      if (!d.sub) { ctx.font = fs(px); ctx.fillText(d.shown, cx, yc); return; }
-      var bh = px * 1.1 + spx * 1.1;
-      ctx.font = fs(px); ctx.fillText(d.shown, cx, yc - bh / 2 + px * 0.55);
-      ctx.font = fs(spx); ctx.fillText(d.sub, cx, yc + bh / 2 - spx * 0.55);
-    };
-    if (!d.repeat) {
-      var avail = (x1 - x0) - 2 * (n + 20), uw = unitWidth();
-      if (uw > avail) { var f = avail / uw; px = Math.max(10, Math.floor(px * f)); spx = Math.max(8, Math.floor(spx * f)); }
-      drawUnit(W / 2);
-    } else {
-      var gapC = d.gapPx * k, uw2 = unitWidth(), step = uw2 + gapC;
-      var x = x0 + ((x1 - x0) - 3 * step) / 2 + gapC / 2;
-      for (var ri = 0; ri < 3; ri++) { drawUnit(x + uw2 / 2); x += step; }
+    var x0 = M, x1 = W - M;
+
+    function drawStrip(repeat, y0, rh) {
+      var y1 = y0 + rh, yc = (y0 + y1) / 2;
+      ctx.beginPath(); ctx.rect(x0, y0, x1 - x0, rh);
+      ctx.fillStyle = S.base; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.stroke();
+      ctx.save(); ctx.clip();
+      var k = rh / d.h;
+      var px = Math.round(d.mainPx * k), spx = Math.round(d.subPx * k);
+      ctx.fillStyle = d.ink.hex; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+      var unitWidth = function () {
+        ctx.font = fs(px); var a = ctx.measureText(d.shown).width, b2 = 0;
+        if (d.sub) { ctx.font = fs(spx); b2 = ctx.measureText(d.sub).width; }
+        return Math.max(a, b2);
+      };
+      var drawUnit = function (cx) {
+        if (!d.sub) { ctx.font = fs(px); ctx.fillText(d.shown, cx, yc); return; }
+        var bh = px * 1.1 + spx * 1.1;
+        ctx.font = fs(px); ctx.fillText(d.shown, cx, yc - bh / 2 + px * 0.55);
+        ctx.font = fs(spx); ctx.fillText(d.sub, cx, yc + bh / 2 - spx * 0.55);
+      };
+      if (!repeat) {
+        var avail = (x1 - x0) - 40, uw = unitWidth();
+        if (uw > avail) { var f = avail / uw; px = Math.max(10, Math.floor(px * f)); spx = Math.max(8, Math.floor(spx * f)); }
+        drawUnit(W / 2);
+      } else {
+        var gapC = d.gapPx * k, uw2 = unitWidth(), step = uw2 + gapC;
+        var x = x0 + ((x1 - x0) - 3 * step) / 2 + gapC / 2;
+        for (var ri = 0; ri < 3; ri++) { drawUnit(x + uw2 / 2); x += step; }
+      }
+      ctx.restore();
     }
-    ctx.restore();
+
+    var y = zy + 40;
+    strips.forEach(function (st) {
+      if (labelH) {
+        ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+        ctx.font = '700 16px Manrope, sans-serif'; ctx.fillStyle = '#17161C';
+        ctx.fillText(st.label, M + 16, y + 18);
+        if (st.chosen) {
+          var lw = ctx.measureText(st.label).width, bx = M + 16 + lw + 12;
+          ctx.font = '700 12px Manrope, sans-serif';
+          var tw = ctx.measureText('YOUR CHOICE').width;
+          rr(ctx, bx, y + 2, tw + 20, 22, 11); ctx.fillStyle = '#2F4BD8'; ctx.fill();
+          ctx.fillStyle = '#FFFFFF'; ctx.fillText('YOUR CHOICE', bx + 10, y + 17);
+        }
+        y += labelH;
+      }
+      drawStrip(st.repeat, y, st.rh);
+      y += st.rh + 36;
+    });
     ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.fillStyle = '#55535E'; ctx.font = '500 13px Manrope, sans-serif';
     ctx.fillText('Preview not to scale', M + 16, zy + zoneH - 16);
 
