@@ -52,7 +52,8 @@ h1 { margin: 0 0 8px; font-family: var(--display); font-weight: 700; font-size: 
 .small { font-size: 13px; color: var(--muted); }
 .stage { background: var(--stage); border-radius: 12px; min-height: 240px; display: flex; align-items: center; justify-content: center; padding: 40px 0; overflow: hidden; }
 .ribbon { width: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; line-height: 1.15; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08); }
-.ribbon .one { overflow: hidden; text-overflow: ellipsis; }
+.ribbon .one { overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ribbon .two { display: flex; flex-direction: column; align-items: center; line-height: 1.1; max-width: 100%; min-width: 0; }
 .ribbon .rep { display: inline-flex; align-items: center; }
 .specs { margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px 20px; }
 .specs div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
@@ -158,6 +159,11 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
           <div class="field">
             <div class="row-between"><label class="lbl" for="textIn">Text</label><span class="small"><span id="count">0</span>/40</span></div>
             <input class="text-in" id="textIn" type="text" maxlength="40" placeholder="Your text here" autocomplete="off">
+          </div>
+          <div class="field">
+            <div class="row-between"><label class="lbl" for="subIn">Second line <span>(optional)</span></label><span class="small"><span id="subCount">0</span>/50</span></div>
+            <input class="text-in" id="subIn" type="text" maxlength="50" placeholder="e.g. names, date or venue" autocomplete="off">
+            <span class="small">Prints smaller, under your main text.</span>
           </div>
           <fieldset>
             <legend>Font <span>· <span id="fontName"></span></span></legend>
@@ -310,7 +316,7 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
   };
   var FONT_CATS = [['script', 'Script'], ['serif', 'Serif'], ['sans', 'Sans'], ['display', 'Display']];
 
-  var DEFAULTS = { product: 'ribbon', width: '25', length: 10, sashSize: '1yd', text: 'Happy Anniversary', font: 'Playfair Display', fontCat: 'serif', scale: 55, layout: 'single', ink: 'gold', base: '#17161C', qty: 1 };
+  var DEFAULTS = { product: 'ribbon', width: '25', length: 10, sashSize: '1yd', text: 'Happy Anniversary', sub: '', font: 'Playfair Display', fontCat: 'serif', scale: 55, layout: 'single', ink: 'gold', base: '#17161C', qty: 1 };
   var S = Object.assign({ step: 'design', ref: '' }, DEFAULTS);
   var layoutCanvas = null;
 
@@ -346,6 +352,9 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
     var sizeLabel = isRibbon ? w.label + ' × ' + S.length + ' yards' : sz.label;
     var baseName = nameOf(colors, S.base);
     var fontPx = Math.round(h * S.scale / 100);
+    var sub = (S.sub || '').trim();
+    var mainPx = sub ? Math.min(fontPx, Math.round(h * 0.52)) : fontPx;
+    var subPx = Math.max(8, Math.round(mainPx * 0.5));
     var specs = [
       ['Product', isRibbon ? 'Double Edge ribbon' : 'Sash'],
       ['Size', sizeLabel],
@@ -353,12 +362,13 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
       ['Font', font[0]],
       ['Ink', ink.name + (isRibbon && ink.tier ? ' (premium)' : '')],
       [isRibbon ? 'Ribbon color' : 'Sash color', baseName],
-      ['Text size', fontPx + ' px']
+      ['Text size', mainPx + ' px']
     ];
+    if (sub) specs.splice(3, 0, ['Second line', sub]);
     if (isRibbon) specs.push(['Layout', repeat ? 'Repeating' : 'Single, centered']);
     return {
       isRibbon: isRibbon, inks: inks, colors: colors, ink: ink, clashing: inks.filter(clash), clash: clash,
-      w: w, sz: sz, font: font, h: h, notch: 0, fontPx: fontPx,
+      w: w, sz: sz, font: font, h: h, notch: 0, fontPx: fontPx, sub: sub, mainPx: mainPx, subPx: subPx,
       sashPrice: sashPrice, unit: unit, qty: qty, total: unit * qty, shown: shown, repeat: repeat,
       sizeLabel: sizeLabel, baseName: baseName, specs: specs,
       qtyWord: isRibbon ? (qty === 1 ? 'roll' : 'rolls') : (qty === 1 ? 'piece' : 'pieces')
@@ -390,20 +400,27 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
     r.style.color = d.ink.hex;
     r.style.fontFamily = fam(d.font);
     r.style.fontWeight = d.font[1];
-    r.style.fontSize = d.fontPx + 'px';
-    r.setAttribute('aria-label', 'Preview: "' + d.shown + '" in ' + d.font[0] + ', ' + d.ink.name + ' ink on ' + d.baseName);
+    r.style.fontSize = d.mainPx + 'px';
+    r.setAttribute('aria-label', 'Preview: "' + d.shown + '"' + (d.sub ? ' with "' + d.sub + '" underneath' : '') + ' in ' + d.font[0] + ', ' + d.ink.name + ' ink on ' + d.baseName);
     r.textContent = '';
+    var textBlock = function () {
+      if (!d.sub) { var t1 = document.createElement('span'); t1.className = 'one'; t1.textContent = d.shown; return t1; }
+      var box = document.createElement('span'); box.className = 'two';
+      var m = document.createElement('span'); m.className = 'one'; m.textContent = d.shown;
+      var sb = document.createElement('span'); sb.className = 'one'; sb.style.fontSize = d.subPx + 'px'; sb.textContent = d.sub;
+      box.appendChild(m); box.appendChild(sb); return box;
+    };
     if (d.repeat) {
-      var gap = Math.max(8, Math.round(d.fontPx * 0.4));
+      var gap = Math.max(8, Math.round(d.mainPx * 0.4));
       for (var i = 0; i < 12; i++) {
         var s = document.createElement('span'); s.className = 'rep'; s.style.padding = '0 ' + gap + 'px'; s.style.gap = gap + 'px';
-        var t = document.createElement('span'); t.textContent = d.shown;
         var b = document.createElement('span'); b.textContent = '•'; b.style.opacity = '0.7'; b.setAttribute('aria-hidden', 'true');
-        s.appendChild(t); s.appendChild(b); r.appendChild(s);
+        s.appendChild(textBlock()); s.appendChild(b); r.appendChild(s);
       }
     } else {
-      var one = document.createElement('span'); one.className = 'one'; one.style.padding = '0 ' + (d.notch + 16) + 'px'; one.textContent = d.shown; r.appendChild(one);
+      var one = textBlock(); one.style.padding = '0 16px'; r.appendChild(one);
     }
+    $('subCount').textContent = (S.sub || '').length;
     $('sizeLabel').textContent = d.sizeLabel;
     $('specs').innerHTML = d.specs.map(function (x) { return '<div><dt>' + esc(x[0]) + '</dt><dd>' + esc(x[1]) + '</dd></div>'; }).join('');
 
@@ -486,12 +503,13 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
     render();
   });
   $('textIn').addEventListener('input', function (e) { S.text = e.target.value.slice(0, 40); render(); });
+  $('subIn').addEventListener('input', function (e) { S.sub = e.target.value.slice(0, 50); render(); });
   $('scaleIn').addEventListener('input', function (e) { S.scale = Number(e.target.value); render(); });
   $('qtyIn').addEventListener('input', function (e) { var v = parseInt(e.target.value, 10); S.qty = isNaN(v) ? 1 : Math.min(999, Math.max(1, v)); render(); });
   $('qtyIn').addEventListener('blur', function () { $('qtyIn').value = S.qty; });
   $('qtyDown').addEventListener('click', function () { S.qty = Math.max(1, S.qty - 1); render(); });
   $('qtyUp').addEventListener('click', function () { S.qty = Math.min(999, S.qty + 1); render(); });
-  $('reset').addEventListener('click', function () { Object.assign(S, DEFAULTS); $('textIn').value = S.text; render(); });
+  $('reset').addEventListener('click', function () { Object.assign(S, DEFAULTS); $('textIn').value = S.text; $('subIn').value = ''; render(); });
   $('toDesign').addEventListener('click', function () { S.step = 'design'; render(); window.scrollTo(0, 0); });
   $('toSummary').addEventListener('click', function () {
     S.step = 'summary';
@@ -526,17 +544,32 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
     ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y0); ctx.lineTo(x1 - n, yc); ctx.lineTo(x1, y1); ctx.lineTo(x0, y1); ctx.lineTo(x0 + n, yc); ctx.closePath();
     ctx.fillStyle = S.base; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.stroke();
     ctx.save(); ctx.clip();
-    var px = Math.round(rh * S.scale / 100);
+    var k = rh / d.h;
+    var px = Math.round(d.mainPx * k), spx = Math.round(d.subPx * k);
     var fs = function (size) { return d.font[1] + ' ' + size + 'px "' + d.font[0] + '", ' + d.font[2]; };
-    ctx.font = fs(px); ctx.fillStyle = d.ink.hex; ctx.textBaseline = 'middle';
+    ctx.fillStyle = d.ink.hex; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+    var unitWidth = function () {
+      ctx.font = fs(px); var a = ctx.measureText(d.shown).width, b2 = 0;
+      if (d.sub) { ctx.font = fs(spx); b2 = ctx.measureText(d.sub).width; }
+      return Math.max(a, b2);
+    };
+    var drawUnit = function (cx) {
+      if (!d.sub) { ctx.font = fs(px); ctx.fillText(d.shown, cx, yc); return; }
+      var bh = px * 1.1 + spx * 1.1;
+      ctx.font = fs(px); ctx.fillText(d.shown, cx, yc - bh / 2 + px * 0.55);
+      ctx.font = fs(spx); ctx.fillText(d.sub, cx, yc + bh / 2 - spx * 0.55);
+    };
     if (!d.repeat) {
-      var avail = (x1 - x0) - 2 * (n + 20), tw = ctx.measureText(d.shown).width;
-      if (tw > avail) { px = Math.max(10, Math.floor(px * avail / tw)); ctx.font = fs(px); }
-      ctx.textAlign = 'center'; ctx.fillText(d.shown, W / 2, yc);
+      var avail = (x1 - x0) - 2 * (n + 20), uw = unitWidth();
+      if (uw > avail) { var f = avail / uw; px = Math.max(10, Math.floor(px * f)); spx = Math.max(8, Math.floor(spx * f)); }
+      drawUnit(W / 2);
     } else {
-      ctx.textAlign = 'left';
-      var gap = Math.max(12, Math.round(px * 0.4)), x = x0 + n + 8;
-      while (x < x1) { ctx.fillText(d.shown, x, yc); x += ctx.measureText(d.shown).width + gap; ctx.fillText('•', x, yc); x += ctx.measureText('•').width + gap; }
+      var gap = Math.max(12, Math.round(px * 0.4)), x = x0 + n + 8, uw2 = unitWidth();
+      ctx.font = fs(px); var bw = ctx.measureText('•').width;
+      while (x < x1) {
+        drawUnit(x + uw2 / 2); x += uw2 + gap;
+        ctx.font = fs(px); ctx.fillText('•', x + bw / 2, yc); x += bw + gap;
+      }
     }
     ctx.restore();
     ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.fillStyle = '#55535E'; ctx.font = '500 13px Manrope, sans-serif';
