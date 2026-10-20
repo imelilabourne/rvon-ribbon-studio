@@ -172,13 +172,7 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
             <span class="small"><span id="fontCount"></span> fonts in this group</span>
             <p class="font-note">Want a different font? Just send us a message on <a href="https://www.facebook.com/rvonph" target="_blank" rel="noopener noreferrer">Facebook</a> and we'll check if we can use it.</p>
           </fieldset>
-          <div class="split">
-            <div class="field">
-              <div class="row-between"><label class="lbl" for="scaleIn">Text size</label><span class="small"><span id="fontPx"></span> px</span></div>
-              <input id="scaleIn" type="range" min="30" max="85" step="1">
-            </div>
-            <fieldset id="layoutBox"><legend>Layout</legend><div class="grid2" id="layouts"></div></fieldset>
-          </div>
+          <fieldset id="layoutBox"><legend>Layout</legend><div class="grid2" id="layouts"></div></fieldset>
         </div>
 
         <div class="card o6">
@@ -200,7 +194,11 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
         </div>
 
         <div class="card o4">
-          <div class="card-head"><span class="num">3</span><h2>Pick your colors</h2></div>
+          <div class="card-head"><span class="num">3</span><h2>Text size &amp; colors</h2></div>
+          <div class="field">
+            <div class="row-between"><label class="lbl" for="scaleIn">Text size</label><span class="small"><span id="fontPx"></span> px</span></div>
+            <input id="scaleIn" type="range" min="30" max="85" step="1">
+          </div>
           <fieldset>
             <legend>Ink color</legend>
             <div class="inks">
