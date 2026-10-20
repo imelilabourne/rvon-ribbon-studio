@@ -130,6 +130,11 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 .split { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 22px; align-items: start; }
 .font-note { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--tint); font-size: 13px; line-height: 1.45; color: var(--ink); }
 .font-note a { font-weight: 700; color: var(--accent); }
+.gaprow { display: flex; gap: 12px; align-items: center; }
+.gaprow input[type=range] { flex: 1; min-width: 0; }
+.unit-in { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); }
+.unit-in input { width: 76px; min-height: 44px; text-align: center; border: 1px solid var(--field); border-radius: 10px; font-weight: 600; font-size: 16px; background: var(--surface); }
+.ribbon .rep { flex: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .design .card { gap: 22px; }
 @media (prefers-reduced-motion: no-preference) { .pill, .sw, .btn { transition: background-color .15s, box-shadow .15s; } }
@@ -173,6 +178,13 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
             <p class="font-note">Want a different font? Just send us a message on <a href="https://www.facebook.com/rvonph" target="_blank" rel="noopener noreferrer">Facebook</a> and we'll check if we can use it.</p>
           </fieldset>
           <fieldset id="layoutBox"><legend>Layout</legend><div class="grid2" id="layouts"></div></fieldset>
+          <div class="field" id="gapBox" hidden>
+            <div class="row-between"><label class="lbl" for="gapIn">Gap between repeats</label><span class="small">Shown to scale with the ribbon width</span></div>
+            <div class="gaprow">
+              <input id="gapIn" type="range" min="0" max="100" step="1">
+              <span class="unit-in"><input id="gapNum" type="number" min="0" max="100" step="1" inputmode="numeric" aria-label="Gap between repeats in millimetres"><span>mm</span></span>
+            </div>
+          </div>
         </div>
 
         <div class="card o6">
@@ -198,6 +210,10 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
           <div class="field">
             <div class="row-between"><label class="lbl" for="scaleIn">Text size</label><span class="small"><span id="fontPx"></span> px</span></div>
             <input id="scaleIn" type="range" min="30" max="85" step="1">
+          </div>
+          <div class="field" id="subSizeBox" hidden>
+            <div class="row-between"><label class="lbl" for="subScaleIn">Second line size</label><span class="small"><span id="subPxLbl"></span> px</span></div>
+            <input id="subScaleIn" type="range" min="10" max="60" step="1">
           </div>
           <fieldset>
             <legend>Ink color</legend>
@@ -314,7 +330,7 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
   };
   var FONT_CATS = [['script', 'Script'], ['serif', 'Serif'], ['sans', 'Sans'], ['display', 'Display']];
 
-  var DEFAULTS = { product: 'ribbon', width: '25', length: 10, sashSize: '1yd', text: 'Happy Anniversary', sub: '', font: 'Playfair Display', fontCat: 'serif', scale: 55, layout: 'single', ink: 'gold', base: '#17161C', qty: 1 };
+  var DEFAULTS = { product: 'ribbon', width: '25', length: 10, sashSize: '1yd', text: 'Happy Anniversary', sub: '', subScale: 26, gapMm: 20, font: 'Playfair Display', fontCat: 'serif', scale: 55, layout: 'single', ink: 'gold', base: '#17161C', qty: 1 };
   var S = Object.assign({ step: 'design', ref: '' }, DEFAULTS);
   var layoutCanvas = null;
 
@@ -351,8 +367,14 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
     var baseName = nameOf(colors, S.base);
     var fontPx = Math.round(h * S.scale / 100);
     var sub = (S.sub || '').trim();
-    var mainPx = sub ? Math.min(fontPx, Math.round(h * 0.52)) : fontPx;
-    var subPx = Math.max(8, Math.round(mainPx * 0.5));
+    var mainPx = fontPx, subPx = Math.round(h * S.subScale / 100);
+    if (sub) {
+      // keep both lines inside the ribbon: shrink them together if they don't fit
+      var need = (mainPx + subPx) * 1.1, room = h * 0.95;
+      if (need > room) { var fit = room / need; mainPx = Math.round(mainPx * fit); subPx = Math.max(6, Math.round(subPx * fit)); }
+    }
+    var gapMm = Math.max(0, Math.min(100, Number(S.gapMm) || 0));
+    var gapPx = gapMm * 4; // preview scale: 4 px per mm (15mm = 60px, 25mm = 100px)
     var specs = [
       ['Product', isRibbon ? 'Double Edge ribbon' : 'Sash'],
       ['Size', sizeLabel],
@@ -363,10 +385,12 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
       ['Text size', mainPx + ' px']
     ];
     if (sub) specs.splice(3, 0, ['Second line', sub]);
+    if (sub) specs.push(['Second line size', subPx + ' px']);
     if (isRibbon) specs.push(['Layout', repeat ? 'Repeating' : 'Single, centered']);
+    if (repeat) specs.push(['Gap between repeats', gapMm + ' mm']);
     return {
       isRibbon: isRibbon, inks: inks, colors: colors, ink: ink, clashing: inks.filter(clash), clash: clash,
-      w: w, sz: sz, font: font, h: h, notch: 0, fontPx: fontPx, sub: sub, mainPx: mainPx, subPx: subPx,
+      w: w, sz: sz, font: font, h: h, notch: 0, fontPx: fontPx, sub: sub, mainPx: mainPx, subPx: subPx, gapMm: gapMm, gapPx: gapPx,
       sashPrice: sashPrice, unit: unit, qty: qty, total: unit * qty, shown: shown, repeat: repeat,
       sizeLabel: sizeLabel, baseName: baseName, specs: specs,
       qtyWord: isRibbon ? (qty === 1 ? 'roll' : 'rolls') : (qty === 1 ? 'piece' : 'pieces')
@@ -409,11 +433,9 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
       box.appendChild(m); box.appendChild(sb); return box;
     };
     if (d.repeat) {
-      var gap = Math.max(8, Math.round(d.mainPx * 0.4));
-      for (var i = 0; i < 12; i++) {
-        var s = document.createElement('span'); s.className = 'rep'; s.style.padding = '0 ' + gap + 'px'; s.style.gap = gap + 'px';
-        var b = document.createElement('span'); b.textContent = '•'; b.style.opacity = '0.7'; b.setAttribute('aria-hidden', 'true');
-        s.appendChild(textBlock()); s.appendChild(b); r.appendChild(s);
+      for (var i = 0; i < 16; i++) {
+        var s = document.createElement('span'); s.className = 'rep'; s.style.padding = '0 ' + (d.gapPx / 2) + 'px';
+        s.appendChild(textBlock()); r.appendChild(s);
       }
     } else {
       var one = textBlock(); one.style.padding = '0 16px'; r.appendChild(one);
@@ -439,7 +461,13 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
     }).join('');
     $('fontCount').textContent = FONT_GROUPS[S.fontCat].length;
     $('scaleIn').value = S.scale;
-    $('fontPx').textContent = d.fontPx;
+    $('fontPx').textContent = d.mainPx;
+    $('subSizeBox').hidden = !d.sub;
+    $('subScaleIn').value = S.subScale;
+    $('subPxLbl').textContent = d.subPx;
+    $('gapBox').hidden = !d.repeat;
+    $('gapIn').value = d.gapMm;
+    if (document.activeElement !== $('gapNum')) $('gapNum').value = d.gapMm;
     $('layouts').innerHTML = pill('layout:single', 'Single', S.layout === 'single') + pill('layout:repeat', 'Repeating', S.layout === 'repeat');
 
     var inkBtn = function (x) {
@@ -502,6 +530,10 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
   });
   $('textIn').addEventListener('input', function (e) { S.text = e.target.value.slice(0, 40); render(); });
   $('subIn').addEventListener('input', function (e) { S.sub = e.target.value.slice(0, 50); render(); });
+  $('subScaleIn').addEventListener('input', function (e) { S.subScale = Number(e.target.value); render(); });
+  $('gapIn').addEventListener('input', function (e) { S.gapMm = Number(e.target.value); render(); });
+  $('gapNum').addEventListener('input', function (e) { var v = parseInt(e.target.value, 10); if (!isNaN(v)) { S.gapMm = Math.max(0, Math.min(100, v)); render(); } });
+  $('gapNum').addEventListener('blur', function () { $('gapNum').value = S.gapMm; });
   $('scaleIn').addEventListener('input', function (e) { S.scale = Number(e.target.value); render(); });
   $('qtyIn').addEventListener('input', function (e) { var v = parseInt(e.target.value, 10); S.qty = isNaN(v) ? 1 : Math.min(999, Math.max(1, v)); render(); });
   $('qtyIn').addEventListener('blur', function () { $('qtyIn').value = S.qty; });
@@ -562,12 +594,8 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
       if (uw > avail) { var f = avail / uw; px = Math.max(10, Math.floor(px * f)); spx = Math.max(8, Math.floor(spx * f)); }
       drawUnit(W / 2);
     } else {
-      var gap = Math.max(12, Math.round(px * 0.4)), x = x0 + n + 8, uw2 = unitWidth();
-      ctx.font = fs(px); var bw = ctx.measureText('•').width;
-      while (x < x1) {
-        drawUnit(x + uw2 / 2); x += uw2 + gap;
-        ctx.font = fs(px); ctx.fillText('•', x + bw / 2, yc); x += bw + gap;
-      }
+      var gapC = d.gapPx * k, uw2 = unitWidth(), step = Math.max(1, uw2 + gapC), x = x0 + gapC / 2;
+      while (x < x1) { drawUnit(x + uw2 / 2); x += step; }
     }
     ctx.restore();
     ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.fillStyle = '#55535E'; ctx.font = '500 13px Manrope, sans-serif';
