@@ -135,6 +135,24 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 .unit-in { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); }
 .unit-in input { width: 76px; min-height: 44px; text-align: center; border: 1px solid var(--field); border-radius: 10px; font-weight: 600; font-size: 16px; background: var(--surface); }
 .ribbon .rep { flex: none; }
+.stage.scrollx { overflow-x: auto; justify-content: flex-start; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+.stage.scrollx .ribbon { flex: none; }
+@media (max-width: 560px) {
+  .card { padding: 18px; border-radius: 14px; }
+  .stage { min-height: 180px; padding: 28px 0; }
+  .fontbtn { font-size: 17px; white-space: normal; line-height: 1.15; overflow-wrap: anywhere; text-overflow: clip; padding: 6px 8px; }
+  .steps li:not(.cur) { padding: 6px 4px; }
+  .steps li:not(.cur) .lbl-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  header.top .wrap { flex-wrap: nowrap; gap: 8px; }
+  .brand { font-size: 17px; white-space: nowrap; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .steps { flex-wrap: nowrap; gap: 2px; flex: none; }
+  .steps li { padding: 5px 8px; gap: 6px; white-space: nowrap; }
+  .big { font-size: 24px; }
+  .specs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 380px) {
+  .steps li:not(.cur) { display: none; }
+}
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .design .card { gap: 22px; }
 @media (prefers-reduced-motion: no-preference) { .pill, .sw, .btn { transition: background-color .15s, box-shadow .15s; } }
@@ -156,7 +174,8 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
       <div class="dcol main">
         <div class="card o1">
           <div class="row-between"><p class="eyebrow">Preview</p><span class="small"><span id="sizeLabel"></span> · not to scale</span></div>
-          <div class="stage"><div class="ribbon" id="ribbon" role="img" aria-label="Ribbon preview"></div></div>
+          <div class="stage" id="stage"><div class="ribbon" id="ribbon" role="img" aria-label="Ribbon preview"></div></div>
+          <p class="small" id="swipeHint" style="margin: -6px 0 0" hidden>Swipe or scroll the ribbon sideways to see all 3 repeats.</p>
         </div>
 
         <div class="card o3">
@@ -409,7 +428,7 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
     $('steps').innerHTML = ['Design', 'Order summary', 'Send on Facebook'].map(function (l, i) {
       var cur = (S.step === 'design' ? 0 : 1);
       var cls = i === cur ? 'cur' : (i < cur ? 'past' : '');
-      return '<li class="' + cls + '"' + (i === cur ? ' aria-current="step"' : '') + '><span class="dot">' + (i < cur ? '✓' : i + 1) + '</span>' + l + '</li>';
+      return '<li class="' + cls + '"' + (i === cur ? ' aria-current="step"' : '') + '><span class="dot">' + (i < cur ? '✓' : i + 1) + '</span><span class="lbl-txt">' + l + '</span></li>';
     }).join('');
     $('viewDesign').hidden = S.step !== 'design';
     $('viewSummary').hidden = S.step !== 'summary';
@@ -425,7 +444,18 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
     r.style.fontSize = d.mainPx + 'px';
     r.setAttribute('aria-label', 'Preview: "' + d.shown + '"' + (d.sub ? ' with "' + d.sub + '" underneath' : '') + ' in ' + d.font[0] + ', ' + d.ink.name + ' ink on ' + d.baseName);
     r.textContent = '';
-    var z = d.repeat ? repeatZoom(d, r.parentElement.clientWidth * 0.98, 220) : 1;
+    var stage = $('stage'), availW = stage.clientWidth * 0.98;
+    // keep the ribbon at least 44px tall so text stays readable; if 3 repeats then don't fit, the ribbon scrolls sideways
+    var minH = availW > 500 ? 28 : 44;
+    // single layout: shrink the whole ribbon (not just the text) when the text is wider than the screen
+    var z = d.repeat ? repeatZoom(d, availW, 220, minH / d.h)
+      : Math.min(1, availW * 0.96 / (repeatUnitWidth(d) - d.gapPx + 32));
+    var fullW = d.repeat ? 3 * repeatUnitWidth(d) * z : 0;
+    var scrolls = d.repeat && fullW > availW + 1;
+    stage.classList.toggle('scrollx', scrolls);
+    r.style.width = scrolls ? Math.ceil(fullW + 2) + 'px' : '';
+    $('swipeHint').hidden = !scrolls;
+    if (!scrolls) stage.scrollLeft = 0;
     r.style.height = Math.round(d.h * z) + 'px';
     r.style.fontSize = (d.mainPx * z) + 'px';
     var textBlock = function () {
@@ -442,6 +472,17 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
       }
     } else {
       var one = textBlock(); one.style.padding = '0 16px'; r.appendChild(one);
+      // measure what the browser actually drew; if it is wider than the ribbon, zoom out until it fits
+      var parts = [one].concat([].slice.call(one.querySelectorAll('.one')));
+      var need = Math.max.apply(null, parts.map(function (e) { return e.scrollWidth; })) + (one.classList.contains('two') ? 32 : 0);
+      var have = r.clientWidth;
+      if (have > 0 && need > have) {
+        z = z * (have / need) * 0.97;
+        r.style.height = Math.round(d.h * z) + 'px';
+        r.style.fontSize = (d.mainPx * z) + 'px';
+        r.textContent = '';
+        one = textBlock(); one.style.padding = '0 16px'; r.appendChild(one);
+      }
     }
     $('subCount').textContent = (S.sub || '').length;
     $('sizeLabel').textContent = d.sizeLabel;
@@ -514,13 +555,13 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
     if (d.sub) { measureCtx.font = f(d.subPx); b = measureCtx.measureText(d.sub).width; }
     return Math.max(a, b) + d.gapPx;
   }
-  function repeatZoom(d, availW, maxH) {
+  function repeatZoom(d, availW, maxH, minZ) {
     var u = repeatUnitWidth(d);
     if (!(u > 0) || !(availW > 0)) return 1;
-    return Math.max(0.3, Math.min(availW / (3 * u), maxH / d.h));
+    return Math.max(minZ || 0.05, Math.min(availW / (3 * u), maxH / d.h));
   }
   function summaryRows(d) {
-    return d.specs.filter(function (x) { return x[0] !== 'Text size'; }).concat([['Quantity', d.qty + ' ' + d.qtyWord], ['Price each', peso(d.unit)]]);
+    return d.specs.filter(function (x) { return x[0] !== 'Text size' && x[0] !== 'Second line size'; }).concat([['Quantity', d.qty + ' ' + d.qtyWord], ['Price each', peso(d.unit)]]);
   }
 
   // ---------- interactions ----------
