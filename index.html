@@ -321,7 +321,9 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
           <div class="sliders">
             <div class="inline-range"><label class="lbl" for="scaleIn">Text size</label><input id="scaleIn" type="range" min="30" max="85" step="1"><span class="small val"><span id="fontPx"></span> px</span></div>
             <div class="inline-range" id="subSizeBox" hidden><label class="lbl" for="subScaleIn">Second line</label><input id="subScaleIn" type="range" min="10" max="60" step="1"><span class="small val"><span id="subPxLbl"></span> px</span></div>
+            <div class="inline-range" id="rScaleBox" hidden><label class="lbl" for="rScaleIn">Right size</label><input id="rScaleIn" type="range" min="30" max="85" step="1"><span class="small val"><span id="rPxLbl"></span> px</span></div>
             <div class="inline-range"><label class="lbl" for="lsIn">Letter spacing</label><input id="lsIn" type="range" min="-10" max="60" step="1"><span class="small val" id="lsVal"></span></div>
+            <div class="inline-range" id="rLsBox" hidden><label class="lbl" for="rLsIn">Right spacing</label><input id="rLsIn" type="range" min="-10" max="60" step="1"><span class="small val" id="rLsVal"></span></div>
           </div>
           <fieldset>
             <legend>Ink color</legend>
@@ -450,7 +452,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   };
   var FONT_CATS = [['script', 'Script'], ['serif', 'Serif'], ['sans', 'Sans'], ['display', 'Display']];
 
-  var DEFAULTS = { product: 'ribbon', width: '25', length: 10, sashSize: '1yd', text: 'Happy Anniversary', sub: '', subFont: '', subScale: 26, ls: 0, gapMm: 20, font: 'Playfair Display', fontCat: 'serif', scale: 55, layout: 'single', sashLayout: 'horizontal', ink: 'gold', base: '#FFFFFF', vpos: 'center', qty: 1 };
+  var DEFAULTS = { product: 'ribbon', width: '25', length: 10, sashSize: '1yd', text: 'Happy Anniversary', sub: '', subFont: '', subScale: 26, ls: 0, rScale: 55, rLs: 0, gapMm: 20, font: 'Playfair Display', fontCat: 'serif', scale: 55, layout: 'single', sashLayout: 'horizontal', ink: 'gold', base: '#FFFFFF', vpos: 'center', qty: 1 };
   var APP = { step: 'design', ref: '' };
   var S = Object.assign({}, DEFAULTS);   // the design being edited
   var ITEMS = [S], ACTIVE = 0;           // every design in this order
@@ -496,7 +498,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     var rightAllowed = !vertical || sz.id === 'wrap';
     if (!rightAllowed) sub = ''; // right side panel only on Wrap Around sashes
     var mainPx = fontPx, subPx = Math.round(h * S.subScale / 100);
-    if (sub) {
+    if (sub && !vertical) {
       // keep both lines inside the ribbon: shrink them together if they don't fit
       var need = (mainPx + subPx) * 1.1, room = h * 0.95;
       if (need > room) { var fit = room / need; mainPx = Math.round(mainPx * fit); subPx = Math.max(6, Math.round(subPx * fit)); }
@@ -518,7 +520,15 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     if (sub) specs.splice(3, 0, [vertical ? 'Right side' : 'Second line', sub]);
     if (sub && S.subFont && !vertical) specs.splice(5, 0, ['Second line font', subFont[0]]);
     if (sub && !vertical) specs.push(['Second line size', subPx + ' px']);
-    if (Number(S.ls)) specs.push(['Letter spacing', (S.ls > 0 ? '+' : '') + S.ls + '%']);
+    var twoPanel = vertical && !!sub;
+    var rightPx = Math.round(h * (Number(S.rScale) || 55) / 100);
+    var pct = function (v) { return (v > 0 ? '+' : '') + v + '%'; };
+    if (twoPanel) {
+      for (var si = 0; si < specs.length; si++) if (specs[si][0] === 'Text size') specs[si][0] = 'Left text size';
+      specs.push(['Right text size', rightPx + ' px']);
+      if (Number(S.ls)) specs.push(['Left letter spacing', pct(S.ls)]);
+      if (Number(S.rLs)) specs.push(['Right letter spacing', pct(S.rLs)]);
+    } else if (Number(S.ls)) specs.push(['Letter spacing', pct(S.ls)]);
     if (isRibbon) specs.push(['Layout', repeat ? 'Repeating' : 'Single, centered']);
     else specs.push(['Layout', vertical ? (sub ? 'Vertical, two side panels' : 'Vertical') : 'Horizontal']);
     var vposName = { start: 'Top', center: 'Center', end: 'Bottom' }[S.vpos] || 'Center';
@@ -527,7 +537,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     if (isRibbon) specs.push(['Gap between repeats', gapMm + ' mm']);
     return {
       isRibbon: isRibbon, inks: inks, colors: colors, ink: ink, clashing: inks.filter(clash), clash: clash,
-      w: w, sz: sz, font: font, subFont: subFont, h: h, notch: 0, fontPx: fontPx, sub: sub, vertical: vertical, mainPx: mainPx, subPx: subPx, gapMm: gapMm, gapPx: gapPx, ls: (Number(S.ls) || 0) / 100,
+      w: w, sz: sz, font: font, subFont: subFont, h: h, notch: 0, fontPx: fontPx, sub: sub, vertical: vertical, mainPx: mainPx, subPx: subPx, gapMm: gapMm, gapPx: gapPx, ls: (Number(S.ls) || 0) / 100, rls: (Number(S.rLs) || 0) / 100, rightPx: rightPx, twoPanel: twoPanel,
       base: S.base, vpos: S.vpos || 'center', rightAllowed: rightAllowed, rightAddon: rightAddon,
       sashPrice: sashPrice, unit: unit, qty: qty, total: unit * qty, shown: shown, repeat: repeat,
       sizeLabel: sizeLabel, baseName: baseName, specs: specs,
@@ -632,6 +642,11 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     $('subScaleIn').value = S.subScale;
     $('lsIn').value = S.ls;
     $('lsVal').textContent = Number(S.ls) ? (S.ls > 0 ? '+' : '') + S.ls + '%' : 'Normal';
+    $('rScaleBox').hidden = !d.twoPanel; $('rLsBox').hidden = !d.twoPanel;
+    $('rScaleIn').value = S.rScale; $('rPxLbl').textContent = d.rightPx;
+    $('rLsIn').value = S.rLs; $('rLsVal').textContent = Number(S.rLs) ? (S.rLs > 0 ? '+' : '') + S.rLs + '%' : 'Normal';
+    document.querySelector('label[for="scaleIn"]').textContent = d.twoPanel ? 'Left size' : 'Text size';
+    document.querySelector('label[for="lsIn"]').textContent = d.twoPanel ? 'Left spacing' : 'Letter spacing';
     $('subPxLbl').textContent = d.subPx;
     $('gapBox').hidden = !d.isRibbon; // repeating version is always shown on the order layout, so the gap is always set
     $('gapIn').value = d.gapMm;
@@ -755,24 +770,25 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   // Vertical sash (men's pageant style): two hanging panels, left and right, each with upright stacked letters
   function vertPlan(ctx, d, k) {
     var fsM = function (sz) { return d.font[1] + ' ' + sz + 'px "' + d.font[0] + '", ' + d.font[2]; };
-    var w = d.h * k, px = d.mainPx * k;
-    var texts = [d.shown].concat(d.sub ? [d.sub] : []); // two panels only when the right side has text
-    var build = function () {
-      var widest = 0;
-      var cols = texts.map(function (text) {
-        var items = [];
-        Array.from(text).forEach(function (ch) {
-          if (/\s/.test(ch)) { items.push({ ch: '', adv: px * 0.55 }); return; }
-          ctx.font = fsM(px);
-          widest = Math.max(widest, ctx.measureText(ch).width);
-          items.push({ ch: ch, font: fsM(px), adv: px * (1.08 + d.ls) });
-        });
-        return { items: items, len: items.reduce(function (a, it) { return a + it.adv; }, 0) };
+    var w = d.h * k;
+    // two panels only when the right side has text; each panel has its own text size and letter spacing
+    var specsCols = [{ text: d.shown, px: d.mainPx * k, ls: d.ls }].concat(d.sub ? [{ text: d.sub, px: (d.rightPx || d.mainPx) * k, ls: d.rls || 0 }] : []);
+    var buildCol = function (c, px) {
+      var items = [], widest = 0;
+      Array.from(c.text).forEach(function (ch) {
+        if (/\s/.test(ch)) { items.push({ ch: '', adv: px * 0.55 }); return; }
+        ctx.font = fsM(px);
+        widest = Math.max(widest, ctx.measureText(ch).width);
+        items.push({ ch: ch, font: fsM(px), adv: px * (1.08 + c.ls) });
       });
-      return { cols: cols, widest: widest, len: Math.max.apply(null, cols.map(function (c) { return c.len; })) };
+      return { items: items, widest: widest, len: items.reduce(function (a, it) { return a + it.adv; }, 0) };
     };
-    var plan = build();
-    if (plan.widest > w * 0.78) { px *= w * 0.78 / plan.widest; plan = build(); }
+    var cols = specsCols.map(function (c) {
+      var col = buildCol(c, c.px);
+      if (col.widest > w * 0.78) col = buildCol(c, c.px * w * 0.78 / col.widest); // wide letters shrink to fit the panel
+      return col;
+    });
+    var plan = { cols: cols, len: Math.max.apply(null, cols.map(function (c) { return c.len; })) };
     plan.w = w; plan.pad = w * 0.35; plan.total = Math.max(plan.len + 2 * plan.pad, w * 5.5); // a hanging sash panel is long; text sits top/center/bottom
     plan.gapX = w * 1.1;
     plan.two = plan.cols.length > 1;
@@ -817,7 +833,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     return Math.max(minZ || 0.05, Math.min(availW / (3 * u), maxH / d.h));
   }
   function summaryRows(d) {
-    return d.specs.filter(function (x) { return x[0] !== 'Text size' && x[0] !== 'Second line size'; }).concat([['Quantity', d.qty + ' ' + d.qtyWord], ['Price each', peso(d.unit)]]);
+    return d.specs.filter(function (x) { return !/(^|\s)text size$|line size$/i.test(x[0]); }).concat([['Quantity', d.qty + ' ' + d.qtyWord], ['Price each', peso(d.unit)]]);
   }
 
   // ---------- interactions ----------
@@ -869,6 +885,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   })();
   $('subScaleIn').addEventListener('input', function (e) { S.subScale = Number(e.target.value); render(); });
   $('lsIn').addEventListener('input', function (e) { S.ls = Number(e.target.value); render(); });
+  $('rScaleIn').addEventListener('input', function (e) { S.rScale = Number(e.target.value); render(); });
+  $('rLsIn').addEventListener('input', function (e) { S.rLs = Number(e.target.value); render(); });
   $('gapIn').addEventListener('input', function (e) { S.gapMm = Number(e.target.value); render(); });
   $('gapNum').addEventListener('input', function (e) { var v = parseInt(e.target.value, 10); if (!isNaN(v)) { S.gapMm = Math.max(0, Math.min(100, v)); render(); } });
   $('gapNum').addEventListener('blur', function () { $('gapNum').value = S.gapMm; });
