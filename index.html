@@ -267,6 +267,10 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
             <div class="row-between"><label class="lbl" for="subScaleIn">Second line size</label><span class="small"><span id="subPxLbl"></span> px</span></div>
             <input id="subScaleIn" type="range" min="10" max="60" step="1">
           </div>
+          <div class="field">
+            <div class="row-between"><label class="lbl" for="lsIn">Letter spacing</label><span class="small" id="lsVal"></span></div>
+            <input id="lsIn" type="range" min="-10" max="60" step="1">
+          </div>
           <fieldset>
             <legend>Ink color</legend>
             <div class="inks">
@@ -382,7 +386,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   };
   var FONT_CATS = [['script', 'Script'], ['serif', 'Serif'], ['sans', 'Sans'], ['display', 'Display']];
 
-  var DEFAULTS = { product: 'ribbon', width: '25', length: 10, sashSize: '1yd', text: 'Happy Anniversary', sub: '', subFont: '', subScale: 26, gapMm: 20, font: 'Playfair Display', fontCat: 'serif', scale: 55, layout: 'single', sashLayout: 'horizontal', ink: 'gold', base: '#17161C', qty: 1 };
+  var DEFAULTS = { product: 'ribbon', width: '25', length: 10, sashSize: '1yd', text: 'Happy Anniversary', sub: '', subFont: '', subScale: 26, ls: 0, gapMm: 20, font: 'Playfair Display', fontCat: 'serif', scale: 55, layout: 'single', sashLayout: 'horizontal', ink: 'gold', base: '#17161C', qty: 1 };
   var S = Object.assign({ step: 'design', ref: '' }, DEFAULTS);
   var layoutCanvas = null;
 
@@ -442,12 +446,13 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     if (sub) specs.splice(3, 0, [vertical ? 'Right side' : 'Second line', sub]);
     if (sub && S.subFont && !vertical) specs.splice(5, 0, ['Second line font', subFont[0]]);
     if (sub && !vertical) specs.push(['Second line size', subPx + ' px']);
+    if (Number(S.ls)) specs.push(['Letter spacing', (S.ls > 0 ? '+' : '') + S.ls + '%']);
     if (isRibbon) specs.push(['Layout', repeat ? 'Repeating' : 'Single, centered']);
     else specs.push(['Layout', vertical ? 'Vertical, two side panels' : 'Horizontal']);
     if (isRibbon) specs.push(['Gap between repeats', gapMm + ' mm']);
     return {
       isRibbon: isRibbon, inks: inks, colors: colors, ink: ink, clashing: inks.filter(clash), clash: clash,
-      w: w, sz: sz, font: font, subFont: subFont, h: h, notch: 0, fontPx: fontPx, sub: sub, vertical: vertical, mainPx: mainPx, subPx: subPx, gapMm: gapMm, gapPx: gapPx,
+      w: w, sz: sz, font: font, subFont: subFont, h: h, notch: 0, fontPx: fontPx, sub: sub, vertical: vertical, mainPx: mainPx, subPx: subPx, gapMm: gapMm, gapPx: gapPx, ls: (Number(S.ls) || 0) / 100,
       sashPrice: sashPrice, unit: unit, qty: qty, total: unit * qty, shown: shown, repeat: repeat,
       sizeLabel: sizeLabel, baseName: baseName, specs: specs,
       qtyWord: isRibbon ? (qty === 1 ? 'roll' : 'rolls') : (qty === 1 ? 'piece' : 'pieces')
@@ -545,6 +550,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     $('subIn').placeholder = d.vertical ? 'e.g. GLOBAL' : 'e.g. names, date or venue';
     $('subFontSel').value = S.subFont;
     $('subScaleIn').value = S.subScale;
+    $('lsIn').value = S.ls;
+    $('lsVal').textContent = Number(S.ls) ? (S.ls > 0 ? '+' : '') + S.ls + '%' : 'Normal';
     $('subPxLbl').textContent = d.subPx;
     $('gapBox').hidden = !d.isRibbon; // repeating version is always shown on the order layout, so the gap is always set
     $('gapIn').value = d.gapMm;
@@ -588,18 +595,28 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   var measureCtx = document.createElement('canvas').getContext('2d');
   function repeatUnitWidth(d) {
     var f = function (px) { return d.font[1] + ' ' + px + 'px "' + d.font[0] + '", ' + d.font[2]; };
-    measureCtx.font = f(d.mainPx); var a = measureCtx.measureText(d.shown).width, b = 0;
-    if (d.sub) { measureCtx.font = d.subFont[1] + ' ' + d.subPx + 'px "' + d.subFont[0] + '", ' + d.subFont[2]; b = measureCtx.measureText(d.sub).width; }
+    measureCtx.font = f(d.mainPx); var a = measureCtx.measureText(d.shown).width + d.ls * d.mainPx * (Array.from(d.shown).length - 1), b = 0;
+    if (d.sub) { measureCtx.font = d.subFont[1] + ' ' + d.subPx + 'px "' + d.subFont[0] + '", ' + d.subFont[2]; b = measureCtx.measureText(d.sub).width + d.ls * d.subPx * (Array.from(d.sub).length - 1); }
     return Math.max(a, b) + d.gapPx;
   }
   // Text measured from the real glyph shapes, so tall fonts never overlap or get clipped
-  function textMetrics(ctx, text, fontStr, px) {
+  // draw text centred on cx with extra space between letters (spacing in px; 0 = normal)
+  function spacedText(ctx, text, cx, y, spacing) {
+    if (!spacing) { ctx.textAlign = 'center'; ctx.fillText(text, cx, y); return; }
+    var chars = Array.from(text), ws = chars.map(function (c) { return ctx.measureText(c).width; });
+    var total = ws.reduce(function (a, b) { return a + b; }, 0) + spacing * (chars.length - 1);
+    var x = cx - total / 2;
+    ctx.textAlign = 'left';
+    chars.forEach(function (c, i) { ctx.fillText(c, x, y); x += ws[i] + spacing; });
+    ctx.textAlign = 'center';
+  }
+  function textMetrics(ctx, text, fontStr, px, ls) {
     ctx.font = fontStr;
     var m = ctx.measureText(text);
     var a = m.actualBoundingBoxAscent, ds = m.actualBoundingBoxDescent;
     if (!(a >= 0)) a = px * 0.75;
     if (!(ds >= 0)) ds = px * 0.22;
-    return { w: m.width, a: a, d: ds };
+    return { w: m.width + (ls || 0) * px * (Array.from(text).length - 1), a: a, d: ds };
   }
   // One ribbon strip (background + text). Used by the live preview and the downloadable layout.
   function drawRibbon(ctx, d, o) {
@@ -613,8 +630,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     var fsS = function (size) { return d.subFont[1] + ' ' + size + 'px "' + d.subFont[0] + '", ' + d.subFont[2]; };
     var px = d.mainPx * k, spx = d.subPx * k;
     var measure = function () {
-      var m = textMetrics(ctx, d.shown, fs(px), px);
-      var sm = d.sub ? textMetrics(ctx, d.sub, fsS(spx), spx) : null;
+      var m = textMetrics(ctx, d.shown, fs(px), px, d.ls);
+      var sm = d.sub ? textMetrics(ctx, d.sub, fsS(spx), spx, d.ls) : null;
       var gap = sm ? Math.max(2, spx * 0.32) : 0;
       return { m: m, s: sm, gap: gap, h: m.a + m.d + (sm ? gap + sm.a + sm.d : 0), w: Math.max(m.w, sm ? sm.w : 0) };
     };
@@ -628,8 +645,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     ctx.fillStyle = d.ink.hex; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
     var top = yc - mm.h / 2;
     var unit = function (cx) {
-      ctx.font = fs(px); ctx.fillText(d.shown, cx, top + mm.m.a);
-      if (mm.s) { ctx.font = fsS(spx); ctx.fillText(d.sub, cx, top + mm.m.a + mm.m.d + mm.gap + mm.s.a); }
+      ctx.font = fs(px); spacedText(ctx, d.shown, cx, top + mm.m.a, d.ls * px);
+      if (mm.s) { ctx.font = fsS(spx); spacedText(ctx, d.sub, cx, top + mm.m.a + mm.m.d + mm.gap + mm.s.a, d.ls * spx); }
     };
     if (!o.repeat) unit((x0 + x1) / 2);
     else {
@@ -652,7 +669,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
           if (/\s/.test(ch)) { items.push({ ch: '', adv: px * 0.55 }); return; }
           ctx.font = fsM(px);
           widest = Math.max(widest, ctx.measureText(ch).width);
-          items.push({ ch: ch, font: fsM(px), adv: px * 1.08 });
+          items.push({ ch: ch, font: fsM(px), adv: px * (1.08 + d.ls) });
         });
         return { items: items, len: items.reduce(function (a, it) { return a + it.adv; }, 0) };
       });
@@ -721,6 +738,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     sel.addEventListener('change', function (e) { S.subFont = e.target.value; render(); });
   })();
   $('subScaleIn').addEventListener('input', function (e) { S.subScale = Number(e.target.value); render(); });
+  $('lsIn').addEventListener('input', function (e) { S.ls = Number(e.target.value); render(); });
   $('gapIn').addEventListener('input', function (e) { S.gapMm = Number(e.target.value); render(); });
   $('gapNum').addEventListener('input', function (e) { var v = parseInt(e.target.value, 10); if (!isNaN(v)) { S.gapMm = Math.max(0, Math.min(100, v)); render(); } });
   $('gapNum').addEventListener('blur', function () { $('gapNum').value = S.gapMm; });
