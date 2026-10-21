@@ -8,7 +8,7 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
-<title>RVON Ribbon Studio</title>
+<title>RVON Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Manrope:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Pacifico&family=Dancing+Script:wght@600&family=Allura&family=Alex+Brush&family=Parisienne&family=Pinyon+Script&family=Sacramento&family=Satisfy&family=Kaushan+Script&family=Tangerine:wght@700&family=Yellowtail&family=Cookie&family=Lobster&family=Courgette&family=Italianno&family=Monsieur+La+Doulaise&family=Herr+Von+Muellerhoff&family=Mrs+Saint+Delafield&family=Rouge+Script&family=Petit+Formal+Script&family=Caveat:wght@600&family=Homemade+Apple&family=Mr+Dafoe&family=Playball&display=swap">
@@ -118,7 +118,7 @@ input[type=text], input[type=number], .qty button, .unit-in input { background-c
 /* design step: two columns on wide screens; on phones the cards stack in filling order */
 .design { display: flex; flex-direction: column; gap: 20px; }
 .dcol { display: contents; }
-.o1 { order: 1; } .o2 { order: 2; } .o3 { order: 3; } .o4 { order: 4; } .o5 { order: 5; } .o6 { order: 6; }
+.o1 { order: 1; } .o2 { order: 2; } .o3 { order: 3; } .ofl { order: 4; } .o4 { order: 5; } .o5 { order: 6; } .o6 { order: 7; }
 @media (min-width: 960px) {
   .design { flex-direction: row; align-items: flex-start; gap: 24px; }
   .dcol { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
@@ -192,6 +192,29 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .rows .sum-head { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; }
 .rows .sum-head:first-child { border-top: none; padding-top: 0; margin-top: 0; }
 .rows .sum-head dt, .rows .sum-head dd { color: var(--ink); font-weight: 700; font-size: 15px; }
+/* desktop: the left column runs the full height so the pinned preview stays visible while the right side scrolls */
+.lstack { display: contents; }
+@media (min-width: 960px) {
+  .dcol.main { align-self: stretch; }
+  /* preview + text boxes stay pinned together while the options on the right scroll */
+  .lstack { display: flex; flex-direction: column; gap: 20px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 8px); z-index: 5; }
+  .lstack .o1 { position: static; }
+}
+/* compact product card */
+.design .card.compact { gap: 12px; padding-block: 16px; }
+.compact fieldset { gap: 6px; }
+.compact legend { font-size: 13px; margin-bottom: 6px; color: var(--muted); }
+.compact .stack { gap: 12px; }
+.compact .pill { min-height: 42px; padding: 4px 6px; font-size: 14px; }
+.compact .pill small { font-size: 11px; }
+.compact .card-head h2 { font-size: 16px; }
+.compact .num { width: 24px; height: 24px; font-size: 12px; }
+/* sliders: label, bar and value on one line */
+.sliders { display: flex; flex-direction: column; gap: 4px; }
+.inline-range { display: grid; grid-template-columns: 112px minmax(0, 1fr) 52px; align-items: center; gap: 10px; min-height: 44px; }
+.inline-range .val { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.inline-range input[type=range] { min-height: 36px; }
+@media (max-width: 380px) { .inline-range { grid-template-columns: 96px minmax(0, 1fr) 46px; gap: 8px; } .inline-range .lbl { font-size: 13px; } }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .design .card { gap: 22px; }
 @media (prefers-reduced-motion: no-preference) { .pill, .sw, .btn { transition: background-color .15s, box-shadow .15s; } }
@@ -199,7 +222,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 
 <header class="top">
   <div class="wrap">
-    <div class="brand">RVON Ribbon Studio</div>
+    <div class="brand">RVON Studio</div>
     <ol class="steps" id="steps" aria-label="Order steps"></ol>
   </div>
 </header>
@@ -211,6 +234,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     <p class="lede">Pick a Double Edge ribbon or a sash, then choose your text, font and ink. The preview and price update as you go.</p>
     <div class="design">
       <div class="dcol main">
+        <div class="lstack">
         <div class="card o1">
           <div class="row-between"><p class="eyebrow">Preview</p><span class="small"><span id="sizeLabel"></span> · not to scale</span></div>
           <div class="stage" id="stage"><div class="ribbon" id="ribbon" role="img" aria-label="Ribbon preview"></div></div>
@@ -233,6 +257,23 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
             <label class="lbl" for="subFontSel">Second line font</label>
             <select id="subFontSel" class="text-in select-in"></select>
           </div>
+        </div>
+        </div>
+      </div>
+
+      <div class="dcol side">
+        <div class="card compact o2">
+          <div class="card-head"><span class="num">1</span><h2>Choose your product</h2></div>
+          <fieldset><legend class="sr-only">Product</legend><div class="grid2" id="products"></div></fieldset>
+          <div id="ribbonOpts" class="stack">
+            <fieldset><legend>Width</legend><div class="grid2" id="widths"></div></fieldset>
+            <fieldset><legend>Length per roll</legend><div class="grid3" id="lengths"></div></fieldset>
+          </div>
+          <fieldset id="sashOpts" hidden><legend>Sash size</legend><div class="grid2" id="sashSizes"></div></fieldset>
+        </div>
+
+        <div class="card ofl">
+          <div class="card-head"><span class="num">3</span><h2>Font &amp; layout</h2></div>
           <fieldset>
             <legend>Font <span>· <span id="fontName"></span></span></legend>
             <div class="grid4" id="fontCats"></div>
@@ -252,37 +293,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
           </div>
         </div>
 
-        <div class="card o6">
-          <p class="eyebrow">Your specs</p>
-          <dl class="specs" id="specs"></dl>
-          <div><button type="button" class="btn btn-ghost" id="reset">Start over</button></div>
-        </div>
-      </div>
-
-      <div class="dcol side">
-        <div class="card o2">
-          <div class="card-head"><span class="num">1</span><h2>Choose your product</h2></div>
-          <fieldset><legend class="sr-only">Product</legend><div class="grid2" id="products"></div></fieldset>
-          <div id="ribbonOpts" class="stack">
-            <fieldset><legend>Width</legend><div class="grid2" id="widths"></div></fieldset>
-            <fieldset><legend>Length per roll</legend><div class="grid3" id="lengths"></div></fieldset>
-          </div>
-          <fieldset id="sashOpts" hidden><legend>Sash size</legend><div class="grid2" id="sashSizes"></div></fieldset>
-        </div>
-
         <div class="card o4">
-          <div class="card-head"><span class="num">3</span><h2>Text size &amp; colors</h2></div>
-          <div class="field">
-            <div class="row-between"><label class="lbl" for="scaleIn">Text size</label><span class="small"><span id="fontPx"></span> px</span></div>
-            <input id="scaleIn" type="range" min="30" max="85" step="1">
-          </div>
-          <div class="field" id="subSizeBox" hidden>
-            <div class="row-between"><label class="lbl" for="subScaleIn">Second line size</label><span class="small"><span id="subPxLbl"></span> px</span></div>
-            <input id="subScaleIn" type="range" min="10" max="60" step="1">
-          </div>
-          <div class="field">
-            <div class="row-between"><label class="lbl" for="lsIn">Letter spacing</label><span class="small" id="lsVal"></span></div>
-            <input id="lsIn" type="range" min="-10" max="60" step="1">
+          <div class="card-head"><span class="num">4</span><h2>Size &amp; colors</h2></div>
+          <div class="sliders">
+            <div class="inline-range"><label class="lbl" for="scaleIn">Text size</label><input id="scaleIn" type="range" min="30" max="85" step="1"><span class="small val"><span id="fontPx"></span> px</span></div>
+            <div class="inline-range" id="subSizeBox" hidden><label class="lbl" for="subScaleIn">Second line</label><input id="subScaleIn" type="range" min="10" max="60" step="1"><span class="small val"><span id="subPxLbl"></span> px</span></div>
+            <div class="inline-range"><label class="lbl" for="lsIn">Letter spacing</label><input id="lsIn" type="range" min="-10" max="60" step="1"><span class="small val" id="lsVal"></span></div>
           </div>
           <fieldset>
             <legend>Ink color</legend>
@@ -315,6 +331,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
           </div>
           <button type="button" class="btn btn-ghost" id="addItem">+ Add another design</button>
           <button type="button" class="btn btn-primary" id="toSummary">Review order summary</button>
+        </div>
+
+        <div class="card o6">
+          <p class="eyebrow">Your specs</p>
+          <dl class="specs" id="specs"></dl>
+          <div><button type="button" class="btn btn-ghost" id="reset">Start over</button></div>
         </div>
       </div>
     </div>
@@ -499,7 +521,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     var focusKey = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute('data-k');
     var d = derive();
 
-    $('steps').innerHTML = ['Design', 'Order summary', 'Send on Facebook'].map(function (l, i) {
+    $('steps').innerHTML = ['Design', 'Order summary'].map(function (l, i) {
       var cur = (APP.step === 'design' ? 0 : 1);
       var cls = i === cur ? 'cur' : (i < cur ? 'past' : '');
       return '<li class="' + cls + '"' + (i === cur ? ' aria-current="step"' : '') + '><span class="dot">' + (i < cur ? '✓' : i + 1) + '</span><span class="lbl-txt">' + l + '</span></li>';
@@ -856,7 +878,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     var ctx = c.getContext('2d'); ctx.scale(SC, SC);
     ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, H);
     ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-    ctx.fillStyle = '#17161C'; ctx.font = '700 34px "Bricolage Grotesque", sans-serif'; ctx.fillText('RVON Ribbon Studio', M, M + 34);
+    ctx.fillStyle = '#17161C'; ctx.font = '700 34px "Bricolage Grotesque", sans-serif'; ctx.fillText('RVON Studio', M, M + 34);
     ctx.fillStyle = '#55535E'; ctx.font = '500 18px Manrope, sans-serif';
     ctx.fillText('Order layout · Ref. ' + ref + ' · ' + date + (multi ? ' · ' + list.length + ' designs' : ''), M, M + 68);
     var x0 = M, x1 = W - M, y = M + 100;
