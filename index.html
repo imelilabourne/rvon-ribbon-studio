@@ -193,13 +193,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .rows .sum-head:first-child { border-top: none; padding-top: 0; margin-top: 0; }
 .rows .sum-head dt, .rows .sum-head dd { color: var(--ink); font-weight: 700; font-size: 15px; }
 /* desktop: the left column runs the full height so the pinned preview stays visible while the right side scrolls */
-.lstack { display: contents; }
-@media (min-width: 960px) {
-  .dcol.main { align-self: stretch; }
-  /* preview + text boxes stay pinned together while the options on the right scroll */
-  .lstack { display: flex; flex-direction: column; gap: 20px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 8px); z-index: 5; }
-  .lstack .o1 { position: static; }
-}
+@media (min-width: 960px) { .dcol.main { align-self: stretch; } }
 /* compact product card */
 .design .card.compact { gap: 12px; padding-block: 16px; }
 .compact fieldset { gap: 6px; }
@@ -234,7 +228,6 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     <p class="lede">Pick a Double Edge ribbon or a sash, then choose your text, font and ink. The preview and price update as you go.</p>
     <div class="design">
       <div class="dcol main">
-        <div class="lstack">
         <div class="card o1">
           <div class="row-between"><p class="eyebrow">Preview</p><span class="small"><span id="sizeLabel"></span> · not to scale</span></div>
           <div class="stage" id="stage"><div class="ribbon" id="ribbon" role="img" aria-label="Ribbon preview"></div></div>
@@ -258,19 +251,6 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
             <select id="subFontSel" class="text-in select-in"></select>
           </div>
         </div>
-        </div>
-      </div>
-
-      <div class="dcol side">
-        <div class="card compact o2">
-          <div class="card-head"><span class="num">1</span><h2>Choose your product</h2></div>
-          <fieldset><legend class="sr-only">Product</legend><div class="grid2" id="products"></div></fieldset>
-          <div id="ribbonOpts" class="stack">
-            <fieldset><legend>Width</legend><div class="grid2" id="widths"></div></fieldset>
-            <fieldset><legend>Length per roll</legend><div class="grid3" id="lengths"></div></fieldset>
-          </div>
-          <fieldset id="sashOpts" hidden><legend>Sash size</legend><div class="grid2" id="sashSizes"></div></fieldset>
-        </div>
 
         <div class="card ofl">
           <div class="card-head"><span class="num">3</span><h2>Font &amp; layout</h2></div>
@@ -291,6 +271,24 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
               <span class="unit-in"><input id="gapNum" type="number" min="0" max="100" step="1" inputmode="numeric" aria-label="Gap between repeats in millimetres"><span>mm</span></span>
             </div>
           </div>
+        </div>
+
+        <div class="card o6">
+          <p class="eyebrow">Your specs</p>
+          <dl class="specs" id="specs"></dl>
+          <div><button type="button" class="btn btn-ghost" id="reset">Start over</button></div>
+        </div>
+      </div>
+
+      <div class="dcol side">
+        <div class="card compact o2">
+          <div class="card-head"><span class="num">1</span><h2>Choose your product</h2></div>
+          <fieldset><legend class="sr-only">Product</legend><div class="grid2" id="products"></div></fieldset>
+          <div id="ribbonOpts" class="stack">
+            <fieldset><legend>Width</legend><div class="grid2" id="widths"></div></fieldset>
+            <fieldset><legend>Length per roll</legend><div class="grid3" id="lengths"></div></fieldset>
+          </div>
+          <fieldset id="sashOpts" hidden><legend>Sash size</legend><div class="grid2" id="sashSizes"></div></fieldset>
         </div>
 
         <div class="card o4">
@@ -333,11 +331,6 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
           <button type="button" class="btn btn-primary" id="toSummary">Review order summary</button>
         </div>
 
-        <div class="card o6">
-          <p class="eyebrow">Your specs</p>
-          <dl class="specs" id="specs"></dl>
-          <div><button type="button" class="btn btn-ghost" id="reset">Start over</button></div>
-        </div>
       </div>
     </div>
   </section>
