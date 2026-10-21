@@ -118,7 +118,7 @@ input[type=text], input[type=number], .qty button, .unit-in input { background-c
 /* design step: two columns on wide screens; on phones the cards stack in filling order */
 .design { display: flex; flex-direction: column; gap: 20px; }
 .dcol { display: contents; }
-.o1 { order: 1; } .o2 { order: 2; } .o3 { order: 3; } .ofl { order: 4; } .o4 { order: 5; } .o5 { order: 6; } .o6 { order: 7; }
+.o1 { order: 1; } .o2 { order: 2; } .o4 { order: 3; } .o3 { order: 4; } .ofl { order: 5; } .o5 { order: 6; } .o6 { order: 7; }
 @media (min-width: 960px) {
   .design { flex-direction: row; align-items: flex-start; gap: 24px; }
   .dcol { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
@@ -238,7 +238,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
         </div>
 
         <div class="card o3">
-          <div class="card-head"><span class="num">2</span><h2>Add your text</h2></div>
+          <div class="card-head"><span class="num">3</span><h2>Add your text</h2></div>
           <div class="field">
             <div class="row-between"><label class="lbl" for="textIn">Text</label><span class="small"><span id="count">0</span>/40</span></div>
             <input class="text-in" id="textIn" type="text" maxlength="40" placeholder="Your text here" autocomplete="off">
@@ -256,7 +256,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
         </div>
 
         <div class="card ofl">
-          <div class="card-head"><span class="num">3</span><h2>Font &amp; layout</h2></div>
+          <div class="card-head"><span class="num">4</span><h2>Font &amp; layout</h2></div>
           <fieldset>
             <legend>Font <span>· <span id="fontName"></span></span></legend>
             <div class="grid4" id="fontCats"></div>
@@ -295,7 +295,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
         </div>
 
         <div class="card o4">
-          <div class="card-head"><span class="num">4</span><h2>Size &amp; colors</h2></div>
+          <div class="card-head"><span class="num">2</span><h2>Size &amp; colors</h2></div>
           <div class="sliders">
             <div class="inline-range"><label class="lbl" for="scaleIn">Text size</label><input id="scaleIn" type="range" min="30" max="85" step="1"><span class="small val"><span id="fontPx"></span> px</span></div>
             <div class="inline-range" id="subSizeBox" hidden><label class="lbl" for="subScaleIn">Second line</label><input id="subScaleIn" type="range" min="10" max="60" step="1"><span class="small val"><span id="subPxLbl"></span> px</span></div>
