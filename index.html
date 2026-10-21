@@ -438,11 +438,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
       [isRibbon ? 'Ribbon color' : 'Sash color', baseName],
       ['Text size', mainPx + ' px']
     ];
-    if (sub) specs.splice(3, 0, ['Second line', sub]);
-    if (sub && S.subFont) specs.splice(5, 0, ['Second line font', subFont[0]]);
-    if (sub) specs.push(['Second line size', subPx + ' px']);
+    if (vertical) specs[2][0] = 'Left side';
+    if (sub) specs.splice(3, 0, [vertical ? 'Right side' : 'Second line', sub]);
+    if (sub && S.subFont && !vertical) specs.splice(5, 0, ['Second line font', subFont[0]]);
+    if (sub && !vertical) specs.push(['Second line size', subPx + ' px']);
     if (isRibbon) specs.push(['Layout', repeat ? 'Repeating' : 'Single, centered']);
-    else specs.push(['Layout', vertical ? 'Vertical (stacked letters)' : 'Horizontal']);
+    else specs.push(['Layout', vertical ? 'Vertical, two side panels' : 'Horizontal']);
     if (isRibbon) specs.push(['Gap between repeats', gapMm + ' mm']);
     return {
       isRibbon: isRibbon, inks: inks, colors: colors, ink: ink, clashing: inks.filter(clash), clash: clash,
@@ -522,7 +523,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     $('sashOpts').hidden = d.isRibbon;
     $('layoutBox').hidden = !d.isRibbon;
     $('sashLayoutBox').hidden = d.isRibbon;
-    $('sashLayouts').innerHTML = pill('sashLayout:horizontal', 'Horizontal', S.sashLayout !== 'vertical') + pill('sashLayout:vertical', 'Vertical', S.sashLayout === 'vertical', 'Stacked letters');
+    $('sashLayouts').innerHTML = pill('sashLayout:horizontal', 'Horizontal', S.sashLayout !== 'vertical') + pill('sashLayout:vertical', 'Vertical', S.sashLayout === 'vertical', 'Two side panels');
     $('widths').innerHTML = WIDTHS.map(function (x) { return pill('width:' + x.id, x.label, x.id === d.w.id); }).join('');
     $('lengths').innerHTML = LENGTHS.map(function (x) { return pill('length:' + x.id, x.label, x.id === S.length, pesoShort(RIBBON_PRICES[x.id][d.w.id][d.ink.tier])); }).join('');
     $('sashSizes').innerHTML = SASH_SIZES.map(function (x) { return pill('sashSize:' + x.id, x.label, x.id === d.sz.id, pesoShort(d.sashPrice(x.id))); }).join('');
@@ -535,8 +536,13 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     $('fontCount').textContent = FONT_GROUPS[S.fontCat].length;
     $('scaleIn').value = S.scale;
     $('fontPx').textContent = d.mainPx;
-    $('subSizeBox').hidden = !d.sub;
-    $('subFontBox').hidden = !d.sub;
+    $('subSizeBox').hidden = !d.sub || d.vertical;
+    $('subFontBox').hidden = !d.sub || d.vertical;
+    document.querySelector('label[for="textIn"]').textContent = d.vertical ? 'Left side' : 'Text';
+    document.querySelector('label[for="subIn"]').innerHTML = d.vertical ? 'Right side <span>(optional)</span>' : 'Second line <span>(optional)</span>';
+    $('subIn').nextElementSibling.textContent = d.vertical ? 'Prints on the right panel, same size and font as the left side.' : 'Prints smaller, under your main text.';
+    $('textIn').placeholder = d.vertical ? 'e.g. MISTER' : 'Your text here';
+    $('subIn').placeholder = d.vertical ? 'e.g. GLOBAL' : 'e.g. names, date or venue';
     $('subFontSel').value = S.subFont;
     $('subScaleIn').value = S.subScale;
     $('subPxLbl').textContent = d.subPx;
@@ -633,39 +639,45 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     }
     ctx.restore();
   }
-  // Vertical sash: each letter upright, stacked top to bottom (second line continues below, smaller)
+  // Vertical sash (men's pageant style): two hanging panels, left and right, each with upright stacked letters
   function vertPlan(ctx, d, k) {
     var fsM = function (sz) { return d.font[1] + ' ' + sz + 'px "' + d.font[0] + '", ' + d.font[2]; };
-    var fsS = function (sz) { return d.subFont[1] + ' ' + sz + 'px "' + d.subFont[0] + '", ' + d.subFont[2]; };
-    var w = d.h * k, px = d.mainPx * k, spx = d.subPx * k;
+    var w = d.h * k, px = d.mainPx * k;
+    var texts = [d.shown].concat(d.sub ? [d.sub] : []);
     var build = function () {
-      var items = [], widest = 0;
-      var add = function (text, size, fsf) {
+      var widest = 0;
+      var cols = texts.map(function (text) {
+        var items = [];
         Array.from(text).forEach(function (ch) {
-          if (/\s/.test(ch)) { items.push({ ch: '', adv: size * 0.55 }); return; }
-          ctx.font = fsf(size);
+          if (/\s/.test(ch)) { items.push({ ch: '', adv: px * 0.55 }); return; }
+          ctx.font = fsM(px);
           widest = Math.max(widest, ctx.measureText(ch).width);
-          items.push({ ch: ch, font: fsf(size), adv: size * 1.08 });
+          items.push({ ch: ch, font: fsM(px), adv: px * 1.08 });
         });
-      };
-      add(d.shown, px, fsM);
-      if (d.sub) { items.push({ ch: '', adv: px * 0.7 }); add(d.sub, spx, fsS); }
-      return { items: items, widest: widest, len: items.reduce(function (a, it) { return a + it.adv; }, 0) };
+        return { items: items, len: items.reduce(function (a, it) { return a + it.adv; }, 0) };
+      });
+      return { cols: cols, widest: widest, len: Math.max.apply(null, cols.map(function (c) { return c.len; })) };
     };
     var plan = build();
-    if (plan.widest > w * 0.8) { var f = w * 0.8 / plan.widest; px *= f; spx *= f; plan = build(); }
+    if (plan.widest > w * 0.78) { px *= w * 0.78 / plan.widest; plan = build(); }
     plan.w = w; plan.pad = w * 0.35; plan.total = plan.len + 2 * plan.pad;
+    plan.gapX = w * 1.1;
+    plan.width = plan.cols.length * w + (plan.cols.length - 1) * plan.gapX;
     return plan;
   }
   function drawVerticalSash(ctx, d, cx, y0, plan) {
-    var x0 = cx - plan.w / 2;
-    ctx.save();
-    ctx.beginPath(); ctx.rect(x0, y0, plan.w, plan.total);
-    ctx.fillStyle = S.base; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.stroke(); ctx.clip();
-    ctx.fillStyle = d.ink.hex; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    var y = y0 + plan.pad;
-    plan.items.forEach(function (it) { if (it.ch) { ctx.font = it.font; ctx.fillText(it.ch, cx, y + it.adv / 2); } y += it.adv; });
-    ctx.restore();
+    var x = cx - plan.width / 2;
+    plan.cols.forEach(function (col) {
+      var mid = x + plan.w / 2;
+      ctx.save();
+      ctx.beginPath(); ctx.rect(x, y0, plan.w, plan.total);
+      ctx.fillStyle = S.base; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.stroke(); ctx.clip();
+      ctx.fillStyle = d.ink.hex; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      var y = y0 + plan.pad;
+      col.items.forEach(function (it) { if (it.ch) { ctx.font = it.font; ctx.fillText(it.ch, mid, y + it.adv / 2); } y += it.adv; });
+      ctx.restore();
+      x += plan.w + plan.gapX;
+    });
   }
   function repeatZoom(d, availW, maxH, minZ) {
     var u = repeatUnitWidth(d);
