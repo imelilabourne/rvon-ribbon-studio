@@ -729,7 +729,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   function vertPlan(ctx, d, k) {
     var fsM = function (sz) { return d.font[1] + ' ' + sz + 'px "' + d.font[0] + '", ' + d.font[2]; };
     var w = d.h * k, px = d.mainPx * k;
-    var texts = [d.shown, d.sub || '']; // a sash always has two sides; the right one can be blank
+    var texts = [d.shown].concat(d.sub ? [d.sub] : []); // two panels only when the right side has text
     var build = function () {
       var widest = 0;
       var cols = texts.map(function (text) {
@@ -748,26 +748,31 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     if (plan.widest > w * 0.78) { px *= w * 0.78 / plan.widest; plan = build(); }
     plan.w = w; plan.pad = w * 0.35; plan.total = Math.max(plan.len + 2 * plan.pad, w * 5.5); // a hanging sash panel is long; text sits top/center/bottom
     plan.gapX = w * 1.1;
-    plan.width = 2 * w + plan.gapX;
-    plan.R = plan.width / 2;                 // the neck band: a half-ring joining the two panels
+    plan.two = plan.cols.length > 1;
+    plan.width = plan.two ? 2 * w + plan.gapX : w;
+    plan.R = plan.two ? plan.width / 2 : 0;  // the neck band: a half-ring joining the two panels
     plan.fullH = plan.R + plan.total;
     return plan;
   }
   function drawVerticalSash(ctx, d, cx, y0, plan) {
     var w = plan.w, R = plan.R, r = R - w, top = y0 + R, bot = top + plan.total;
-    var xl = cx - R, xr = cx + R;            // outer edges of the left and right panels
-    // one continuous sash: left panel up, over the neck, right panel down
+    var xl = plan.two ? cx - R : cx - w / 2, xr = plan.two ? cx + R : cx + w / 2;
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(xl, bot); ctx.lineTo(xl, top);
-    ctx.arc(cx, top, R, Math.PI, 0, false);
-    ctx.lineTo(xr, bot); ctx.lineTo(xr - w, bot); ctx.lineTo(xr - w, top);
-    ctx.arc(cx, top, r, 0, Math.PI, true);
-    ctx.lineTo(xl + w, bot); ctx.closePath();
+    if (plan.two) {
+      // one continuous sash: left panel up, over the neck, right panel down
+      ctx.moveTo(xl, bot); ctx.lineTo(xl, top);
+      ctx.arc(cx, top, R, Math.PI, 0, false);
+      ctx.lineTo(xr, bot); ctx.lineTo(xr - w, bot); ctx.lineTo(xr - w, top);
+      ctx.arc(cx, top, r, 0, Math.PI, true);
+      ctx.lineTo(xl + w, bot); ctx.closePath();
+    } else {
+      ctx.rect(xl, top, w, plan.total);   // single panel
+    }
     ctx.fillStyle = d.base; ctx.fill();
     ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,0.18)'; ctx.stroke();
     ctx.restore();
-    [xl, xr - w].forEach(function (x, ci) {
+    (plan.two ? [xl, xr - w] : [xl]).forEach(function (x, ci) {
       var col = plan.cols[ci]; if (!col) return;
       var mid = x + w / 2;
       ctx.save();
