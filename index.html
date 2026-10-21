@@ -378,7 +378,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
           <p class="small" id="dlMsg" role="status" hidden></p>
           <div class="owner-box" id="ownerBox" hidden>
             <div class="row-between"><strong>Print files</strong><button type="button" class="it-btn" id="ownerOff">Turn off print mode</button></div>
-            <p class="small" style="margin: 0">Black ink on white, high resolution, one PNG per design. Text only, no borders or labels.</p>
+            <p class="small" style="margin: 0">Black ink on white, high resolution. One PNG per design; two-panel sashes give a left and a right file. Text only, no borders, labels or neck band.</p>
             <button type="button" class="btn btn-dark" id="dlPrint">Download print files</button>
           </div>
           <p class="shot-tip"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M20 16v2a2 2 0 0 1-2 2h-2"/><path d="M8 20H6a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/></svg><span>Download not working? <strong>Just take a screenshot</strong> of your layout and send it to us. You can also press and hold (or right-click) the image to save it.</span></p>
@@ -1084,26 +1084,34 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   $('ownerOff').addEventListener('click', function () { setOwner(false); });
   $('ownerBox').hidden = !APP.owner;
 
-  // one design → black-on-white artwork at high resolution (no outline, labels or order details)
-  function printCanvas(d) {
+  // one design → black-on-white artwork at high resolution (no outline, labels or order details).
+  // Returns a list of files: two-panel sashes give a separate LEFT and RIGHT panel (no neck band).
+  function printFiles(d) {
     var P = Object.assign({}, d, { base: '#FFFFFF', ink: Object.assign({}, d.ink, { hex: '#000000' }), printMode: true });
-    var MAXSIDE = 16000, MAXAREA = 16e6, c, ctx, K;
+    var MAXSIDE = 16000, MAXAREA = 16e6;
+    // target resolution: ribbons 8x preview (~800 DPI at 25mm); sashes ~600 DPI at 80mm wide
+    var target = P.isRibbon ? 8 : (80 / 25.4 * 600) / P.h;
+    var blank = function (w, h) { var c = document.createElement('canvas'); c.width = Math.ceil(w); c.height = Math.ceil(h); var x = c.getContext('2d'); x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, c.width, c.height); return c; };
     if (P.vertical) {
       var p1 = vertPlan(measureCtx, P, 1);
-      K = Math.min(8, MAXSIDE / p1.fullH, MAXSIDE / p1.width, Math.sqrt(MAXAREA / (p1.fullH * p1.width)));
+      // each panel is printed on its own, so size the limit by one panel (width w, height total)
+      var K = Math.min(target, MAXSIDE / p1.total, Math.sqrt(MAXAREA / (p1.total * p1.w)));
       var plan = vertPlan(measureCtx, P, K);
-      c = document.createElement('canvas'); c.width = Math.ceil(plan.width + 4); c.height = Math.ceil(plan.fullH + 4);
-      ctx = c.getContext('2d'); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, c.width, c.height);
-      drawVerticalSash(ctx, P, c.width / 2, 2, plan);
-    } else {
-      var textW = repeatUnitWidth(P) - P.gapPx;
-      var baseW = P.repeat ? 3 * (textW + P.gapPx) : textW + 2 * Math.max(12, P.h * 0.15) + 24;
-      K = Math.min(8, MAXSIDE / baseW, Math.sqrt(MAXAREA / (baseW * P.h)));
-      c = document.createElement('canvas'); c.width = Math.ceil(baseW * K); c.height = Math.ceil(P.h * K);
-      ctx = c.getContext('2d'); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, c.width, c.height);
-      drawRibbon(ctx, P, { x0: 0, x1: c.width, y0: 0, rh: c.height, repeat: P.repeat });
+      return plan.cols.map(function (col, ci) {
+        var c = blank(plan.w, plan.total), ctx = c.getContext('2d');
+        var mid = plan.w / 2, free = plan.total - 2 * plan.pad - col.len;
+        var y = plan.pad + (P.vpos === 'start' ? 0 : P.vpos === 'end' ? free : free / 2);
+        ctx.fillStyle = '#000000'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        col.items.forEach(function (it) { if (it.ch) { ctx.font = it.font; ctx.fillText(it.ch, mid, y + it.adv / 2); } y += it.adv; });
+        return { canvas: c, suffix: plan.cols.length > 1 ? (ci === 0 ? '-left' : '-right') : '' };
+      });
     }
-    return c;
+    var textW = repeatUnitWidth(P) - P.gapPx;
+    var baseW = P.repeat ? 3 * (textW + P.gapPx) : textW + 2 * Math.max(12, P.h * 0.15) + 24;
+    var K2 = Math.min(target, MAXSIDE / baseW, MAXSIDE / P.h, Math.sqrt(MAXAREA / (baseW * P.h)));
+    var c2 = blank(baseW * K2, P.h * K2);
+    drawRibbon(c2.getContext('2d'), P, { x0: 0, x1: c2.width, y0: 0, rh: c2.height, repeat: P.repeat });
+    return [{ canvas: c2, suffix: '' }];
   }
   function downloadBlob(name, blob) {
     return downloadsP.then(function (dl) {
@@ -1118,19 +1126,22 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     var list = ITEMS.map(function (it) { return derive(it); });
     setMsg('Preparing ' + list.length + ' print file' + (list.length > 1 ? 's' : '') + '…');
     var chain = Promise.resolve();
+    var count = 0;
     list.forEach(function (d, i) {
-      chain = chain.then(function () {
-        return new Promise(function (res) {
-          var cv = printCanvas(d);
-          cv.toBlob(function (b) {
-            var name = 'RVON-print-' + APP.ref + (list.length > 1 ? '-design' + (i + 1) : '') + '.png';
-            if (!b) { res(); return; }
-            downloadBlob(name, b).then(function () { setTimeout(res, 400); });
-          }, 'image/png');
+      printFiles(d).forEach(function (f) {
+        chain = chain.then(function () {
+          return new Promise(function (res) {
+            f.canvas.toBlob(function (b) {
+              var name = 'RVON-print-' + APP.ref + (list.length > 1 ? '-design' + (i + 1) : '') + f.suffix + '.png';
+              if (!b) { res(); return; }
+              count++;
+              downloadBlob(name, b).then(function () { setTimeout(res, 400); });
+            }, 'image/png');
+          });
         });
       });
     });
-    chain.then(function () { setMsg('Print file' + (list.length > 1 ? 's' : '') + ' ready: black on white, high resolution.'); });
+    chain.then(function () { setMsg(count + ' print file' + (count > 1 ? 's' : '') + ' ready: black on white, high resolution.'); });
   });
 
   $('dlPng').addEventListener('click', function () { save('png'); });
