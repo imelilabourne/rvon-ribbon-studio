@@ -452,7 +452,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   };
   var FONT_CATS = [['script', 'Script'], ['serif', 'Serif'], ['sans', 'Sans'], ['display', 'Display']];
 
-  var DEFAULTS = { product: 'ribbon', width: '25', length: 10, sashSize: '1yd', text: 'Happy Anniversary', sub: '', subFont: '', subScale: 26, ls: 0, rScale: 55, rLs: 0, gapMm: 20, font: 'Playfair Display', fontCat: 'serif', scale: 55, layout: 'single', sashLayout: 'horizontal', ink: 'gold', base: '#FFFFFF', vpos: 'center', qty: 1 };
+  var DEFAULTS = { product: 'ribbon', width: '25', length: 10, sashSize: '1yd', text: 'John and Mary', sub: '12.23.2026', subFont: 'Crimson Text', subScale: 17, ls: 6, rScale: 55, rLs: 0, gapMm: 20, font: 'Great Vibes', fontCat: 'script', scale: 42, layout: 'single', sashLayout: 'horizontal', ink: 'white', base: '#849573', vpos: 'center', qty: 1 };
   var APP = { step: 'design', ref: '' };
   var S = Object.assign({}, DEFAULTS);   // the design being edited
   var ITEMS = [S], ACTIVE = 0;           // every design in this order
@@ -848,8 +848,15 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
       if (!colors.some(function (c) { return same(c.hex, S.base); })) S.base = '#FFFFFF';
       // swap the sample text to suit the product, unless the customer has typed their own
       var t0 = (S.text || '').trim();
-      if (val === 'sash' && (!t0 || t0 === 'Happy Anniversary')) S.text = 'Miss World';
-      if (val === 'ribbon' && (!t0 || t0 === 'Miss World')) S.text = 'Happy Anniversary';
+      if (val === 'sash' && (!t0 || t0 === DEFAULTS.text)) {
+        S.text = 'Miss World';
+        if ((S.sub || '').trim() === DEFAULTS.sub) S.sub = '';   // sample date isn't needed on a sash
+      }
+      if (val === 'ribbon' && (!t0 || t0 === 'Miss World')) {
+        S.text = DEFAULTS.text;
+        if (!(S.sub || '').trim()) S.sub = DEFAULTS.sub;
+      }
+      $('subIn').value = S.sub || '';
       S.product = val;
       $('textIn').value = S.text;
     } else if (key === 'length') S.length = Number(val);
@@ -1176,7 +1183,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', function () { render(); });
 
   // ---------- start ----------
-  $('textIn').value = S.text;
+  syncInputs();
   render();
   window.__rvon = { state: S, save: save, getCanvas: function () { return layoutCanvas; }, pdf: pdfFromCanvas };
 })();
