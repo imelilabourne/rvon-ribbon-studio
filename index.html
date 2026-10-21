@@ -830,7 +830,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
       var colors = val === 'ribbon' ? RIBBON_COLORS : SASH_COLORS;
       if (!inks.some(function (x) { return x.id === S.ink; })) S.ink = inks[0].id;
       if (!colors.some(function (c) { return same(c.hex, S.base); })) S.base = '#FFFFFF';
+      // swap the sample text to suit the product, unless the customer has typed their own
+      var t0 = (S.text || '').trim();
+      if (val === 'sash' && (!t0 || t0 === 'Happy Anniversary')) S.text = 'Miss World';
+      if (val === 'ribbon' && (!t0 || t0 === 'Miss World')) S.text = 'Happy Anniversary';
       S.product = val;
+      $('textIn').value = S.text;
     } else if (key === 'length') S.length = Number(val);
     else if (key === 'width') S.width = val;
     else if (key === 'sashSize') S.sashSize = val;
