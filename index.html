@@ -243,7 +243,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
             <div class="row-between"><label class="lbl" for="textIn">Text</label><span class="small"><span id="count">0</span>/40</span></div>
             <input class="text-in" id="textIn" type="text" maxlength="40" placeholder="Your text here" autocomplete="off">
           </div>
-          <p class="small" id="rightNote" hidden style="margin: 0">Want text on the right panel too? Choose the <strong>Wrap Around</strong> size (+₱30).</p>
+          <p class="small" id="rightNote" hidden style="margin: 0">Want text on the right panel too? Choose the <strong>Wrap Around</strong> size (+₱70).</p>
           <div class="field" id="subField">
             <div class="row-between"><label class="lbl" for="subIn">Second line <span>(optional)</span></label><span class="small"><span id="subCount">0</span>/50</span></div>
             <input class="text-in" id="subIn" type="text" maxlength="50" placeholder="e.g. names, date or venue" autocomplete="off">
@@ -474,7 +474,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
       var need = (mainPx + subPx) * 1.1, room = h * 0.95;
       if (need > room) { var fit = room / need; mainPx = Math.round(mainPx * fit); subPx = Math.max(6, Math.round(subPx * fit)); }
     }
-    var rightAddon = vertical && sub ? 30 : 0;
+    var rightAddon = vertical && sub ? 70 : 0;
     unit = unit + rightAddon;
     var gapMm = Math.max(0, Math.min(100, Number(S.gapMm) || 0));
     var gapPx = gapMm * 4; // preview scale: 4 px per mm (15mm = 60px, 25mm = 100px)
@@ -598,7 +598,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     $('subFontBox').hidden = !d.sub || d.vertical;
     document.querySelector('label[for="textIn"]').textContent = d.vertical ? 'Left side' : 'Text';
     document.querySelector('label[for="subIn"]').innerHTML = d.vertical ? 'Right side <span>(optional)</span>' : 'Second line <span>(optional)</span>';
-    $('subIn').nextElementSibling.textContent = d.vertical ? 'Prints on the right panel, same size and font as the left side. Adds ₱30.' : 'Prints smaller, under your main text.';
+    $('subIn').nextElementSibling.textContent = d.vertical ? 'Prints on the right panel, same size and font as the left side. Adds ₱70.' : 'Prints smaller, under your main text.';
     $('textIn').placeholder = d.vertical ? 'e.g. MISTER' : 'Your text here';
     $('subIn').placeholder = d.vertical ? 'e.g. GLOBAL' : 'e.g. names, date or venue';
     $('subFontSel').value = S.subFont;
