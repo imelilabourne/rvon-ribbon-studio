@@ -537,8 +537,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
       // vertical sash: letters stacked top to bottom; fit the whole sash in the preview height
       stage.classList.remove('scrollx'); $('swipeHint').hidden = true; r.style.width = ''; stage.scrollLeft = 0;
       var vb = vertPlan(measureCtx, d, 1);
-      var plan = vertPlan(measureCtx, d, Math.min(1.2, (availW > 500 ? 380 : 240) / vb.total));
-      chh = Math.ceil(plan.total) + 2;
+      var plan = vertPlan(measureCtx, d, Math.min(1.2, (availW > 500 ? 400 : 260) / vb.fullH));
+      chh = Math.ceil(plan.fullH) + 2;
       r.style.height = chh + 'px';
       cw = Math.max(10, r.clientWidth || availW);
       drawFn = function (ctx) { drawVerticalSash(ctx, d, cw / 2, 1, plan); };
@@ -729,7 +729,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   function vertPlan(ctx, d, k) {
     var fsM = function (sz) { return d.font[1] + ' ' + sz + 'px "' + d.font[0] + '", ' + d.font[2]; };
     var w = d.h * k, px = d.mainPx * k;
-    var texts = [d.shown].concat(d.sub ? [d.sub] : []);
+    var texts = [d.shown, d.sub || '']; // a sash always has two sides; the right one can be blank
     var build = function () {
       var widest = 0;
       var cols = texts.map(function (text) {
@@ -748,22 +748,35 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     if (plan.widest > w * 0.78) { px *= w * 0.78 / plan.widest; plan = build(); }
     plan.w = w; plan.pad = w * 0.35; plan.total = Math.max(plan.len + 2 * plan.pad, w * 5.5); // a hanging sash panel is long; text sits top/center/bottom
     plan.gapX = w * 1.1;
-    plan.width = plan.cols.length * w + (plan.cols.length - 1) * plan.gapX;
+    plan.width = 2 * w + plan.gapX;
+    plan.R = plan.width / 2;                 // the neck band: a half-ring joining the two panels
+    plan.fullH = plan.R + plan.total;
     return plan;
   }
   function drawVerticalSash(ctx, d, cx, y0, plan) {
-    var x = cx - plan.width / 2;
-    plan.cols.forEach(function (col) {
-      var mid = x + plan.w / 2;
+    var w = plan.w, R = plan.R, r = R - w, top = y0 + R, bot = top + plan.total;
+    var xl = cx - R, xr = cx + R;            // outer edges of the left and right panels
+    // one continuous sash: left panel up, over the neck, right panel down
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(xl, bot); ctx.lineTo(xl, top);
+    ctx.arc(cx, top, R, Math.PI, 0, false);
+    ctx.lineTo(xr, bot); ctx.lineTo(xr - w, bot); ctx.lineTo(xr - w, top);
+    ctx.arc(cx, top, r, 0, Math.PI, true);
+    ctx.lineTo(xl + w, bot); ctx.closePath();
+    ctx.fillStyle = d.base; ctx.fill();
+    ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,0.18)'; ctx.stroke();
+    ctx.restore();
+    [xl, xr - w].forEach(function (x, ci) {
+      var col = plan.cols[ci]; if (!col) return;
+      var mid = x + w / 2;
       ctx.save();
-      ctx.beginPath(); ctx.rect(x, y0, plan.w, plan.total);
-      ctx.fillStyle = d.base; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.stroke(); ctx.clip();
+      ctx.beginPath(); ctx.rect(x, top, w, plan.total); ctx.clip();
       ctx.fillStyle = d.ink.hex; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       var free = plan.total - 2 * plan.pad - col.len;
-      var y = y0 + plan.pad + (d.vpos === 'start' ? 0 : d.vpos === 'end' ? free : free / 2);
+      var y = top + plan.pad + (d.vpos === 'start' ? 0 : d.vpos === 'end' ? free : free / 2);
       col.items.forEach(function (it) { if (it.ch) { ctx.font = it.font; ctx.fillText(it.ch, mid, y + it.adv / 2); } y += it.adv; });
       ctx.restore();
-      x += plan.w + plan.gapX;
     });
   }
   function repeatZoom(d, availW, maxH, minZ) {
@@ -855,14 +868,14 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     // Ribbons: show both the single and the repeating version, with the customer's choice marked. Sashes: their own layout.
     var strips = d.vertical ? [] : (d.isRibbon ? [{ repeat: false }, { repeat: true }] : [{ repeat: false }]);
     var vplan = null;
-    if (d.vertical) { var vb0 = vertPlan(measureCtx, d, 1); vplan = vertPlan(measureCtx, d, Math.min(1.6, 640 / vb0.total)); }
+    if (d.vertical) { var vb0 = vertPlan(measureCtx, d, 1); vplan = vertPlan(measureCtx, d, Math.min(1.6, 700 / vb0.fullH)); }
     strips.forEach(function (st) {
       st.rh = st.repeat ? Math.round(d.h * repeatZoom(d, (W - 2 * M) * 0.98, 300)) : Math.round(d.h * 1.5);
       st.label = st.repeat ? 'Repeating · ' + d.gapMm + ' mm gap' : 'Single, centered';
       st.chosen = d.isRibbon && st.repeat === d.repeat;
     });
     var labelH = d.isRibbon ? 34 : 0;
-    var zoneH = vplan ? 40 + vplan.total + 36 + 24 : 40 + strips.reduce(function (a, st) { return a + labelH + st.rh + 36; }, 0) + 24;
+    var zoneH = vplan ? 40 + vplan.fullH + 36 + 24 : 40 + strips.reduce(function (a, st) { return a + labelH + st.rh + 36; }, 0) + 24;
     return { d: d, strips: strips, vplan: vplan, labelH: labelH, zoneH: zoneH, rows: summaryRows(d) };
   }
   function drawLayout(list, ref, date) {
