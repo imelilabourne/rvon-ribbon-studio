@@ -321,6 +321,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
           <div class="sliders">
             <div class="inline-range"><label class="lbl" for="scaleIn">Text size</label><input id="scaleIn" type="range" min="30" max="85" step="1"><span class="small val"><span id="fontPx"></span> px</span></div>
             <div class="inline-range" id="subSizeBox" hidden><label class="lbl" for="subScaleIn">Second line</label><input id="subScaleIn" type="range" min="10" max="60" step="1"><span class="small val"><span id="subPxLbl"></span> px</span></div>
+            <div class="inline-range" id="lineGapBox" hidden><label class="lbl" for="lineGapIn">Line gap</label><input id="lineGapIn" type="range" min="-10" max="40" step="1"><span class="small val" id="lineGapVal"></span></div>
             <div class="inline-range" id="rScaleBox" hidden><label class="lbl" for="rScaleIn">Right size</label><input id="rScaleIn" type="range" min="30" max="85" step="1"><span class="small val"><span id="rPxLbl"></span> px</span></div>
             <div class="inline-range"><label class="lbl" for="lsIn">Letter spacing</label><input id="lsIn" type="range" min="-10" max="60" step="1"><span class="small val" id="lsVal"></span></div>
             <div class="inline-range" id="rLsBox" hidden><label class="lbl" for="rLsIn">Right spacing</label><input id="rLsIn" type="range" min="-10" max="60" step="1"><span class="small val" id="rLsVal"></span></div>
@@ -452,7 +453,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   };
   var FONT_CATS = [['script', 'Script'], ['serif', 'Serif'], ['sans', 'Sans'], ['display', 'Display']];
 
-  var DEFAULTS = { product: 'ribbon', width: '25', length: 10, sashSize: '1yd', text: 'John and Mary', sub: '12.23.2026', subFont: 'Crimson Text', subScale: 17, ls: 6, rScale: 55, rLs: 0, gapMm: 20, font: 'Great Vibes', fontCat: 'script', scale: 42, layout: 'single', sashLayout: 'horizontal', ink: 'white', base: '#849573', vpos: 'center', qty: 1 };
+  var DEFAULTS = { product: 'ribbon', width: '25', length: 10, sashSize: '1yd', text: 'John and Mary', sub: '12.23.2026', subFont: 'Crimson Text', subScale: 17, lineGap: 0, ls: 6, rScale: 55, rLs: 0, gapMm: 20, font: 'Great Vibes', fontCat: 'script', scale: 42, layout: 'single', sashLayout: 'horizontal', ink: 'white', base: '#849573', vpos: 'center', qty: 1 };
   var APP = { step: 'design', ref: '' };
   var S = Object.assign({}, DEFAULTS);   // the design being edited
   var ITEMS = [S], ACTIVE = 0;           // every design in this order
@@ -520,6 +521,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     if (sub) specs.splice(3, 0, [vertical ? 'Right side' : 'Second line', sub]);
     if (sub && S.subFont && !vertical) specs.splice(5, 0, ['Second line font', subFont[0]]);
     if (sub && !vertical) specs.push(['Second line size', subPx + ' px']);
+    if (sub && !vertical && Number(S.lineGap)) specs.push(['Line gap', (S.lineGap > 0 ? '+' : '') + S.lineGap]);
     var twoPanel = vertical && !!sub;
     var rightPx = Math.round(h * (Number(S.rScale) || 55) / 100);
     var pct = function (v) { return (v > 0 ? '+' : '') + v + '%'; };
@@ -537,7 +539,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     if (isRibbon) specs.push(['Gap between repeats', gapMm + ' mm']);
     return {
       isRibbon: isRibbon, inks: inks, colors: colors, ink: ink, clashing: inks.filter(clash), clash: clash,
-      w: w, sz: sz, font: font, subFont: subFont, h: h, notch: 0, fontPx: fontPx, sub: sub, vertical: vertical, mainPx: mainPx, subPx: subPx, gapMm: gapMm, gapPx: gapPx, ls: (Number(S.ls) || 0) / 100, rls: (Number(S.rLs) || 0) / 100, rightPx: rightPx, twoPanel: twoPanel,
+      w: w, sz: sz, font: font, subFont: subFont, h: h, notch: 0, fontPx: fontPx, sub: sub, vertical: vertical, mainPx: mainPx, subPx: subPx, gapMm: gapMm, gapPx: gapPx, ls: (Number(S.ls) || 0) / 100, lineGap: (Number(S.lineGap) || 0) / 100, rls: (Number(S.rLs) || 0) / 100, rightPx: rightPx, twoPanel: twoPanel,
       base: S.base, vpos: S.vpos || 'center', rightAllowed: rightAllowed, rightAddon: rightAddon,
       sashPrice: sashPrice, unit: unit, qty: qty, total: unit * qty, shown: shown, repeat: repeat,
       sizeLabel: sizeLabel, baseName: baseName, specs: specs,
@@ -632,6 +634,9 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     $('scaleIn').value = S.scale;
     $('fontPx').textContent = d.mainPx;
     $('subSizeBox').hidden = !d.sub || d.vertical;
+    $('lineGapBox').hidden = !d.sub || d.vertical;
+    $('lineGapIn').value = S.lineGap || 0;
+    $('lineGapVal').textContent = Number(S.lineGap) ? (S.lineGap > 0 ? '+' : '') + S.lineGap : 'Normal';
     $('subFontBox').hidden = !d.sub || d.vertical;
     document.querySelector('label[for="textIn"]').textContent = d.vertical ? 'Left side' : 'Text';
     document.querySelector('label[for="subIn"]').innerHTML = d.vertical ? 'Right side <span>(optional)</span>' : 'Second line <span>(optional)</span>';
@@ -743,7 +748,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     var measure = function () {
       var m = textMetrics(ctx, d.shown, fs(px), px, d.ls);
       var sm = d.sub ? textMetrics(ctx, d.sub, fsS(spx), spx, d.ls) : null;
-      var gap = sm ? Math.max(2, spx * 0.32) : 0;
+      var gap = sm ? Math.max(-spx * 0.25, Math.max(2, spx * 0.32) + rh * (d.lineGap || 0) * 0.5) : 0;
       return { m: m, s: sm, gap: gap, h: m.a + m.d + (sm ? gap + sm.a + sm.d : 0), w: Math.max(m.w, sm ? sm.w : 0) };
     };
     var mm = measure();
@@ -890,6 +895,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     sel.innerHTML = html;
     sel.addEventListener('change', function (e) { S.subFont = e.target.value; render(); });
   })();
+  $('lineGapIn').addEventListener('input', function (e) { S.lineGap = Number(e.target.value); render(); });
   $('subScaleIn').addEventListener('input', function (e) { S.subScale = Number(e.target.value); render(); });
   $('lsIn').addEventListener('input', function (e) { S.ls = Number(e.target.value); render(); });
   $('rScaleIn').addEventListener('input', function (e) { S.rScale = Number(e.target.value); render(); });
