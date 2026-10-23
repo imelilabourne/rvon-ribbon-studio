@@ -1097,12 +1097,11 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
       });
     });
   }
-  // ---------- owner print mode (hidden): tap the logo 5 times, or open the site with #print ----------
-  function ownerOn() { try { return localStorage.getItem('rvon-print') === '1'; } catch (e) { return false; } }
-  APP.owner = ownerOn() || location.hash === '#print';
+  // ---------- owner print mode (hidden): tap the logo 5 times. Always starts off when the page loads. ----------
+  APP.owner = false;
+  try { localStorage.removeItem('rvon-print'); } catch (e) {}   // forget any older remembered setting
   function setOwner(on) {
     APP.owner = on;
-    try { if (on) localStorage.setItem('rvon-print', '1'); else localStorage.removeItem('rvon-print'); } catch (e) {}
     $('ownerBox').hidden = !on;
     toast(on ? 'Print mode on' : 'Print mode off');
   }
